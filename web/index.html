@@ -1,0 +1,1438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#081019">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>V-Core HMI</title>
+<style>
+:root{
+  --bg:#070d13;--panel:#0d151e;--panel2:#111c27;--line:#1d2a36;
+  --text:#f4f7fa;--muted:#81909e;--blue:#2196f3;--cyan:#19b5fe;
+  --green:#20d66b;--orange:#ffad1f;--red:#ff453a;--purple:#a970ff;
+  --radius:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+ font-family:Inter,Roboto,Arial,sans-serif;touch-action:manipulation}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+.app{height:100%;display:flex;flex-direction:column}
+.top{height:82px;display:flex;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);
+ background:#091119;gap:18px;flex:none}
+.logo{width:46px;height:46px;border:2px solid #dce6ef;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:21px}
+.title{font-size:25px;font-weight:800;line-height:1}.subtitle{font-size:12px;color:var(--muted);letter-spacing:2px;margin-top:5px}
+.top-spacer{flex:1}.connection{display:flex;align-items:center;gap:8px;color:var(--green);font-size:13px}
+.dot{width:10px;height:10px;border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor}
+.clock{text-align:right;min-width:75px}.clock b{font-size:18px}.clock small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.status{padding:12px 17px;border-radius:12px;background:#0b6334;color:#6dffab;font-weight:800;letter-spacing:.5px;min-width:125px;text-align:center}
+.status.paused{background:#694d08;color:#ffd36b}.status.idle{background:#18222c;color:#aebac5}.status.error{background:#6c1717;color:#ff9a95}
+main{flex:1;min-height:0;padding:12px 18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;overscroll-behavior:contain}
+.home-page{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
+.home-page.hidden{display:none}
+.temps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;flex:none}
+.card{background:linear-gradient(145deg,#101923,#0b131b);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 8px 25px #0005}
+.temp{height:128px;padding:16px 20px;position:relative;overflow:hidden}
+.temp h3{margin:0 0 3px;font-size:14px;color:#d9e1e8;letter-spacing:.6px}
+.temp .value{font-size:38px;font-weight:800;letter-spacing:-1px}.unit{font-size:18px;color:#aeb9c3;font-weight:500}
+.target{color:var(--muted);font-size:12px;margin-top:3px}.bar{position:absolute;left:20px;right:20px;bottom:15px;height:9px;background:#26323d;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:inherit;transition:width .4s}.nozzle .bar i{background:#ff5d49}.bed .bar i{background:#1ea8ff}
+.chamber .bar i{background:#a970ff}.fan .bar i{background:#20d66b}
+.nozzle .value{color:#ff6b57}.bed .value{color:#36b5ff}.chamber .value{color:#b78aff}.fan .value{color:#48e980}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:12px;min-height:0;flex:1}
+.job{padding:16px;display:grid;grid-template-columns:180px 1fr;gap:18px;min-height:0}
+.preview{border-radius:12px;background:#080d12;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #1b2732;min-height:180px}
+.preview img{width:100%;height:100%;object-fit:cover;display:block}.preview .placeholder{color:#44515d;text-align:center;font-size:12px;padding:20px}
+.jobinfo{min-width:0;display:flex;flex-direction:column}
+.filename{font-size:21px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{color:var(--muted);font-size:13px;margin-top:5px}
+.progress-row{display:flex;align-items:end;gap:12px;margin-top:22px}.progress{height:16px;flex:1;background:#27333e;border-radius:99px;overflow:hidden}.progress i{height:100%;display:block;background:linear-gradient(90deg,#20d66b,#36ed85);width:0;border-radius:inherit;transition:width .4s}.pct{font-size:28px;font-weight:800;min-width:65px;text-align:right}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.divider{height:1px;background:var(--line);margin:15px 0}.details{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.detail b{font-size:15px}.detail span{display:block;color:var(--muted);font-size:10px;margin-top:3px;text-transform:uppercase}
+.actions{padding:16px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:14px}.action{border-radius:18px;font-size:19px;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:120px}.action small{font-size:11px;font-weight:600;opacity:.8}.pause{background:#9b670b}.resume{background:#0968c7}.stop{background:#c92f2a;grid-column:1/3;min-height:90px}.action:active{transform:scale(.98);filter:brightness(1.15)}
+.home-quick{display:flex;gap:8px;flex:none}
+.home-quick button{min-height:42px;flex:1;border-radius:11px;background:#173a54;border:1px solid #2a526c;font-weight:900;letter-spacing:.4px}
+.home-quick button:last-child{background:#342750;border-color:#5d438b}
+.action:disabled{opacity:.35;filter:saturate(.2);cursor:not-allowed}
+.nav{height:84px;position:sticky;bottom:0;z-index:4;background:var(--bg);display:grid;grid-template-columns:repeat(6,1fr);gap:10px;flex:none}.nav button{background:#0c151e;border:1px solid var(--line);border-radius:14px;color:#9eacb9;font-size:12px;font-weight:700;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px}.nav button.active{border-color:#168ff0;color:#40aeff;background:#092039}.nav .ico{font-size:21px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);opacity:0;background:#17222d;border:1px solid #2b3b49;padding:12px 18px;border-radius:10px;transition:.2s;pointer-events:none;z-index:20}.toast.show{opacity:1;transform:translateX(-50%)}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:10}.modal.show{display:flex}.modalbox{width:min(500px,90vw);background:#101923;border:1px solid #30404e;border-radius:18px;padding:24px}.modalbox h2{margin:0 0 10px}.modalbox p{color:#a9b6c1}.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}.modal-actions button{padding:12px 18px;border-radius:10px;background:#24313d}.modal-actions .danger{background:#c92f2a}
+.temp-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;background:#000b;z-index:30}
+.temp-modal.show{display:flex}
+.temp-box{width:min(460px,94vw);max-height:92vh;overflow:auto;padding:22px;background:#101923;border:1px solid #30404e;border-radius:18px;box-shadow:0 20px 70px #0009}
+.temp-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.temp-head h2{margin:0 0 5px}.temp-current,.temp-note{color:var(--muted);font-size:12px}
+.temp-input{width:100%;margin:18px 0 12px;padding:14px 15px;border:1px solid #30404e;border-radius:12px;background:#081019;color:var(--text);font-size:28px;font-weight:800}
+.temp-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.temp-presets button,.temp-close,.temp-off,.temp-apply{min-height:44px;border-radius:10px;background:#24313d;font-weight:800}
+.temp-presets button{background:#172a39}.temp-off{width:100%;background:#482522;color:#ffb4ad}.temp-actions{display:flex;justify-content:flex-end;gap:8px;margin:14px 0}.temp-actions button{padding:0 18px}.temp-apply{background:#0878dd}.temp-note{line-height:1.45}
+@media(max-width:900px){
+ .top{height:68px;padding:9px 12px}.logo{width:38px;height:38px}.title{font-size:18px}.subtitle{font-size:9px}.status{min-width:100px;padding:9px}.connection,.clock{display:none}
+ main{padding:8px 10px;gap:8px}.temps{gap:7px}.temp{height:92px;padding:10px 12px}.temp h3{font-size:10px}.temp .value{font-size:27px}.unit{font-size:13px}.target{font-size:9px}.bar{left:12px;right:12px;bottom:9px;height:6px}
+ .workspace{grid-template-columns:1fr;overflow:auto}.job{grid-template-columns:105px 1fr;padding:11px;min-height:230px}.filename{font-size:15px}.meta{font-size:10px}.preview{min-height:150px}.progress-row{margin-top:14px}.progress{height:11px}.pct{font-size:21px}.stats{margin-top:11px;gap:8px}.stat b{font-size:13px}.stat span,.detail span{font-size:8px}.details{gap:7px}.detail b{font-size:11px}
+ .actions{grid-template-rows:82px 82px 74px;padding:9px;gap:8px}.action{min-height:0;border-radius:12px;font-size:15px}.stop{min-height:0}.nav{height:67px;gap:5px}.nav button{font-size:9px;border-radius:10px}.nav .ico{font-size:17px}
+}
+@media(max-width:600px) and (orientation:portrait){
+ body{overflow:auto}.app{min-height:100%;height:auto}.top{position:sticky;top:0;z-index:5}.temps{grid-template-columns:1fr 1fr}.temp{height:88px}.workspace{overflow:visible}.actions{grid-template-columns:1fr 1fr}.job{min-height:205px}.nav{position:sticky;bottom:0;background:#070d13;padding:5px 0;height:62px}
+}
+@media(max-width:900px) and (orientation:landscape){
+ main{padding:6px 9px;gap:6px}.home-page{gap:6px}.temps{gap:6px}.temp{height:74px;padding:7px 10px}.temp h3{font-size:9px}.temp .value{font-size:23px}.unit{font-size:11px}.target{font-size:8px}.bar{left:10px;right:10px;bottom:7px;height:5px}
+ .home-quick{gap:6px}.home-quick button{min-height:32px;font-size:11px}
+ .workspace{grid-template-columns:minmax(0,1fr) 132px;gap:6px;overflow:auto}
+ .job{grid-template-columns:78px minmax(0,1fr);gap:7px;padding:7px;min-height:0}
+ .preview{min-height:0}.filename{font-size:12px}.meta{font-size:8px;margin-top:2px}.progress-row{margin-top:7px;gap:5px}.progress{height:7px}.pct{font-size:15px;min-width:34px}.stats{margin-top:7px;gap:5px}.stat b{font-size:10px}.stat span{font-size:7px;letter-spacing:0}.divider{margin:6px 0}.details{gap:5px}.detail b{font-size:9px}.detail span{font-size:6px;margin-top:1px}
+ .actions{padding:6px;gap:5px;grid-template-rows:1fr 1fr}.action{min-height:0;border-radius:9px;font-size:12px;gap:2px}.action small{font-size:7px}.stop{min-height:0}
+ .nav{height:52px;gap:5px}.nav button{font-size:8px;gap:2px}.nav .ico{font-size:15px}
+}
+
+.control-page{display:none;flex:1;min-height:0;flex-direction:column;gap:12px}
+.control-page.active{display:flex}
+.home-page.hidden{display:none}
+.control-top{display:grid;grid-template-columns:1.2fr 1fr 1.2fr;gap:12px;flex:none}
+.control-card{padding:14px}
+.control-card h3{margin:0 0 10px;font-size:13px;color:#c9d4dd;letter-spacing:.8px}
+.axis-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.jog-btn,.home-btn,.extrude-btn,.utility-btn{min-height:58px;border-radius:13px;background:#172531;border:1px solid #2a3d4b;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.jog-btn:active,.home-btn:active,.extrude-btn:active,.utility-btn:active{transform:scale(.96);filter:brightness(1.2)}
+.jog-x{background:#13283a}.jog-y{background:#172d28}.jog-z{background:#241b34}
+.axis-label{text-align:center;font-size:10px;color:var(--muted);margin-top:5px;letter-spacing:1px}
+.home-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.home-btn{font-size:14px}.home-all{grid-column:1/3;background:#173a54}
+.increment-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.increment{min-height:48px;border-radius:11px;background:#18242f;border:1px solid #2a3a47;font-weight:900;font-size:14px}
+.increment.selected{background:#0878dd;border-color:#4ab1ff;box-shadow:0 0 14px #0878dd55}
+.extrude-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.extrude-btn{font-size:15px}.extrude-btn.primary{background:#174d36}.extrude-btn.reverse{background:#49252a}
+.control-main{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;min-height:0;flex:1}
+.jog-panel{padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:9px;min-height:0}
+.jog-panel .up{grid-column:2;grid-row:1}.jog-panel .left{grid-column:1;grid-row:2}.jog-panel .center{grid-column:2;grid-row:2;background:#0d1922;color:#6e7f8c;font-size:12px}.jog-panel .right{grid-column:3;grid-row:2}.jog-panel .down{grid-column:2;grid-row:3}
+.jog-panel .jog-btn{font-size:28px;min-height:0}
+.z-panel{padding:14px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:9px}
+.z-panel .z-up{grid-column:1/3}.z-panel .z-down{grid-column:1/3}
+.z-panel .jog-btn{min-height:0;font-size:27px}
+.position-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:none}
+.position{padding:9px 12px;background:#0c151e;border:1px solid var(--line);border-radius:11px;text-align:center}
+.position b{font-size:17px}.position span{display:block;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px}
+@media (orientation:landscape) and (max-width:900px){
+ .control-top{gap:7px}.control-card{padding:9px}.control-card h3{font-size:9px;margin-bottom:6px}
+ .jog-btn,.home-btn,.extrude-btn,.utility-btn{min-height:42px;border-radius:9px}.home-btn,.extrude-btn{font-size:11px}
+ .increment{min-height:37px;font-size:11px}.control-main{gap:7px}.jog-panel,.z-panel{padding:9px;gap:6px}
+ .jog-panel .jog-btn,.z-panel .jog-btn{font-size:21px}.position-bar{gap:6px}.position{padding:6px}.position b{font-size:13px}
+}
+@media (orientation:landscape) and (max-height:600px){
+ .control-top{grid-template-columns:1fr 1fr 1fr}
+}
+@media (max-width:700px) and (orientation:portrait){
+ .control-top{grid-template-columns:1fr}.control-main{grid-template-columns:1fr}.control-page{overflow:auto}
+}
+
+
+/* Compatibility / diagnostics */
+.temp.disabled{opacity:.42;filter:saturate(.35)}
+.temp.disabled::after{content:"UNAVAILABLE";position:absolute;right:14px;top:12px;font-size:9px;font-weight:800;letter-spacing:1px;color:#ff9a95}
+button:disabled{opacity:.38;filter:saturate(.2);cursor:not-allowed}
+.diag-modal .modalbox{width:min(680px,92vw);max-height:86vh;overflow:auto}
+.diag-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.diag-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.diag-item{padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#0c151e}
+.diag-item b{display:block;font-size:12px}.diag-item span{display:block;margin-top:4px;color:var(--muted);font-size:11px;word-break:break-word}
+.diag-item.ok{border-color:#1e6b43}.diag-item.bad{border-color:#71302d}
+.diag-ok{color:#55eb91}.diag-bad{color:#ff928b}
+.diag-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.diag-actions button{padding:11px 15px;border-radius:10px;background:#24313d}
+@media(max-width:600px){.diag-grid{grid-template-columns:1fr}}
+
+
+/* Files page */
+.files-page{display:none;flex:1;min-height:0;flex-direction:column;gap:10px}
+.files-page.active{display:flex}
+.files-toolbar{display:flex;align-items:center;gap:8px;flex:none}
+.files-path{flex:1;min-width:0;padding:11px 14px;border:1px solid var(--line);background:#0c151e;border-radius:11px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.files-tool{padding:11px 15px;border-radius:11px;background:#172531;border:1px solid #2a3d4b;font-weight:800}
+.files-tool:active{transform:scale(.97)}
+.files-list{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;align-content:start;padding-right:2px}
+.file-card{position:relative;display:flex;flex-direction:column;min-height:180px;background:linear-gradient(145deg,#101923,#0b131b);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.file-thumb{height:105px;background:#080d12;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.file-thumb img{width:100%;height:100%;object-fit:cover}
+.file-thumb .file-icon{font-size:38px;color:#52616e}
+.file-body{padding:10px 11px;min-width:0;flex:1}
+.file-name{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-meta{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.4}
+.file-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 10px 10px}
+.file-actions button{padding:9px 7px;border-radius:9px;background:#182733;border:1px solid #2b3d4a;font-size:11px;font-weight:800}
+.file-actions .print-file{background:#075fbd}
+.file-actions .delete-file{background:#5c2222}
+.file-card.folder .file-thumb{height:76px}
+.file-card.folder .file-body{padding-bottom:12px}
+.file-card.folder .file-actions{grid-template-columns:1fr}
+.files-empty{grid-column:1/-1;display:grid;place-items:center;min-height:180px;color:#687784;text-align:center}
+.files-empty b{display:block;color:#9ba8b3;margin-bottom:5px}
+.files-loading{grid-column:1/-1;padding:30px;text-align:center;color:var(--muted)}
+@media(max-width:900px){
+  .files-list{grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px}
+  .file-card{min-height:165px}.file-thumb{height:82px}
+}
+@media(max-width:600px) and (orientation:portrait){
+  .files-toolbar{position:sticky;top:0;z-index:2;background:var(--bg);padding-bottom:4px}
+  .files-list{grid-template-columns:1fr 1fr}
+  .file-actions{gap:5px}.file-actions button{font-size:10px}
+}
+
+.console-page,.macros-page{display:none;flex:1;min-height:0;flex-direction:column;gap:10px}
+.console-page.active,.macros-page.active{display:flex}
+.console-head,.macros-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}
+.console-head h2,.macros-head h2{margin:0;font-size:20px}.console-head p,.macros-head p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.console-log{flex:1;min-height:160px;overflow:auto;padding:12px;background:#050a0e;border:1px solid var(--line);border-radius:12px;font:13px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.console-hint{color:var(--muted)}.console-line{padding:3px 0;border-bottom:1px solid #16212a}.console-command{color:#7cc8ff}.console-response{color:#a8f0be}.console-error{color:#ff9a95}
+.console-entry{display:flex;gap:8px;flex:none}.console-entry input{flex:1;min-width:0;padding:13px;border:1px solid #30404e;border-radius:11px;background:#0c151e;color:var(--text);font:14px ui-monospace,Consolas,monospace}.console-entry button{min-width:92px;border-radius:11px;background:#0878dd;font-weight:900}
+.macro-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:9px;align-content:start;overflow:auto;min-height:0;padding-bottom:3px}
+.macro-button{min-height:58px;padding:10px 13px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;background:#111d27;border:1px solid #263845;border-radius:12px;font-weight:800;overflow-wrap:anywhere}
+.macro-button span:last-child{color:#57baff;font-size:10px;white-space:nowrap}
+@media(max-width:700px){.console-head h2,.macros-head h2{font-size:16px}.console-entry button{min-width:72px}.macro-list{grid-template-columns:1fr 1fr}}
+
+
+/* Compact responsive layout and pinned navigation */
+html,body{height:100%;height:100dvh;overflow:hidden}
+.app{height:100%;height:100dvh;min-height:0}
+.top{height:clamp(50px,8vh,66px);padding:6px clamp(8px,2vw,18px);gap:clamp(6px,1.2vw,14px)}
+.logo{width:36px;height:36px;border-radius:10px;font-size:17px}
+.title{font-size:clamp(15px,2vw,21px)}.subtitle{font-size:9px;letter-spacing:1.3px;margin-top:3px}
+.top-sensors{display:flex;align-items:center;gap:5px;min-width:0}
+.top-chip{border:1px solid #293946;background:#101a23;border-radius:8px;padding:6px 8px;color:#a9b7c3;font-size:9px;font-weight:800;white-space:nowrap}
+.top-chip.active-chip,.top-chip.sensor-ok{color:#6dffab;border-color:#246143}.top-chip.sensor-warn{color:#ffd36b;border-color:#695116}
+.top-button{width:34px;height:34px;flex:none;border:1px solid #293946;border-radius:9px;background:#14212b;font-size:17px}
+.status{min-width:76px;padding:8px 10px;border-radius:9px;font-size:11px}
+.connection,.clock{display:none}
+main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidden}
+.page-viewport{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:8px;scrollbar-width:thin}
+.home-page,.control-page,.files-page,.extruder-page,.console-page,.macros-page{flex:none;min-height:min-content}
+.home-page{gap:9px}
+.temps{gap:8px}.temp{height:clamp(68px,11vh,92px);padding:9px 12px}
+.temp h3{font-size:10px;margin-bottom:0}.temp .value{font-size:clamp(22px,3vw,29px)}.unit{font-size:12px}
+.target{font-size:9px;margin-top:1px}.bar{left:12px;right:12px;bottom:8px;height:5px}
+.workspace{grid-template-columns:minmax(0,1.25fr) minmax(245px,1fr);gap:9px;min-height:0;flex:1;overflow:visible}
+.job{grid-template-columns:clamp(90px,13vw,150px) minmax(0,1fr);gap:12px;padding:12px;min-height:200px}
+.actions{padding:11px;gap:9px}.action{min-height:86px;font-size:16px}.stop{min-height:68px}
+.home-quick button{min-height:38px}
+.nav{height:clamp(52px,8vh,64px);position:relative;bottom:auto;padding:5px max(8px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));gap:6px}
+.nav button{border-radius:10px;font-size:clamp(8px,1.2vw,10px);gap:2px}.nav .ico{font-size:17px}
+.control-page{gap:8px}.control-main{flex:0 0 clamp(170px,30vh,260px)}
+.control-settings{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.advanced-card{padding:12px}.advanced-card h3{margin:0 0 6px;font-size:12px;letter-spacing:.6px}
+.advanced-card p,.small-note{margin:0 0 9px;color:var(--muted);font-size:10px;line-height:1.4}
+.motion-fields{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.advanced-card label{display:flex;flex-direction:column;gap:4px;color:#aab7c2;font-size:10px;font-weight:700}
+.advanced-card input:not([type=range]),.field-inline input{width:100%;min-width:0;padding:9px 10px;border:1px solid #30404e;border-radius:9px;background:#081019;color:var(--text);font-size:15px}
+.advanced-apply,.advanced-buttons button{min-height:38px;padding:8px 10px;border:1px solid #2a3d4b;border-radius:9px;background:#123b59;color:#eaf6ff;font-size:10px;font-weight:900}
+.motion-settings .advanced-apply{width:100%;margin-top:8px}
+.led-controls{display:grid;grid-template-columns:minmax(0,1fr) 42px;gap:7px;align-items:center}
+.led-controls select{min-width:0;padding:9px;border:1px solid #30404e;border-radius:9px;background:#081019;color:var(--text)}
+.led-controls input[type=color]{width:42px;height:36px;border:0;background:transparent}
+.led-controls label{grid-column:1/3}.led-controls input[type=range]{width:100%;accent-color:#2196f3}
+.led-controls .advanced-apply{grid-column:1/3}
+.extruder-page{display:none;flex-direction:column;gap:10px}.extruder-page.active{display:flex}
+.extruder-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.extruder-head h2{font-size:20px;margin:0}.extruder-head p{font-size:11px;color:var(--muted);margin:4px 0 0}
+.extruder-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.advanced-card>label{margin:8px 0}
+.field-inline{display:flex;align-items:center;gap:8px}.field-inline span{font-size:20px;color:var(--muted)}
+.advanced-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+.advanced-buttons button{background:#172a39}.advanced-buttons button#flowSet{background:#075fbd}
+.advanced-buttons:has(#loadFilament){grid-template-columns:1fr 1fr}
+.danger-control{background:#542522!important}.extruder-readout>div{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px;color:#aab7c2}.extruder-readout b{color:var(--text)}
+@media(max-width:700px){
+ .top{height:56px}.logo{width:30px;height:30px}.title{font-size:15px}.subtitle{font-size:8px}
+ .top-sensors{gap:3px}.top-chip{padding:5px 5px;font-size:8px}.top-button{width:30px;height:30px;font-size:15px}
+ .status{min-width:55px;padding:7px 5px;font-size:9px}.temps{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .temp{height:76px}.workspace{grid-template-columns:minmax(0,1fr);flex:none}
+ .job{grid-template-columns:minmax(76px,25%) minmax(0,1fr);min-height:185px}
+ .actions{grid-template-rows:60px 60px 52px;grid-template-columns:1fr 1fr}
+ .action{font-size:13px}.stop{grid-column:1/3}
+ .control-settings{grid-template-columns:1fr}.extruder-grid{grid-template-columns:1fr}.control-main{flex:0 0 220px}.nav{height:58px}
+}
+@media(max-width:430px){.subtitle{display:none}.top-sensors{gap:2px}.top-chip{padding:4px 4px;font-size:7px}.top{gap:4px}.status{min-width:45px;font-size:8px}.top-button{width:28px;height:28px}}
+@media(max-width:380px){
+ .subtitle{display:none}.top-sensors .sensor-chip{display:none}.top{gap:5px}.top-chip{font-size:7px;padding:4px}.status{min-width:48px}
+ .nav{gap:3px}.nav button{font-size:7px}.nav .ico{font-size:15px}
+}
+@media(max-width:900px) and (orientation:landscape){
+ .top{height:48px}.logo{width:29px;height:29px}.title{font-size:14px}.subtitle{display:none}
+ .top-chip{font-size:7px;padding:4px 5px}.top-button{width:28px;height:28px}.status{font-size:8px;min-width:48px;padding:6px 5px}
+ main{padding:5px 8px 0}.page-viewport{padding-bottom:4px}
+ .home-page{gap:5px}.temps{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+ .temp{height:58px;padding:5px 8px}.temp h3{font-size:8px}.temp .value{font-size:18px}.unit{font-size:9px}.target{font-size:7px}
+ .bar{left:8px;right:8px;bottom:5px;height:4px}.home-quick button{min-height:27px;font-size:9px}
+ .workspace{grid-template-columns:minmax(0,1fr) minmax(185px,.72fr);gap:6px;flex:1}
+ .job{grid-template-columns:68px minmax(0,1fr);gap:6px;min-height:0;padding:6px}
+ .preview{min-height:0}.filename{font-size:11px}.meta{font-size:7px}.progress-row{margin-top:5px}.stats{margin-top:5px}.divider{margin:4px 0}
+ .actions{grid-template-rows:1fr 1fr;grid-template-columns:1fr 1fr;padding:5px;gap:4px}.action{min-height:0;font-size:10px}.stop{min-height:0}
+ .nav{height:43px}.nav .ico{font-size:13px}
+ .control-page{gap:5px}.control-top{gap:5px}.control-card{padding:6px}.control-card h3{font-size:8px;margin-bottom:4px}
+ .increment{min-height:30px}.home-btn,.extrude-btn,.jog-btn,.utility-btn{min-height:32px}
+ .control-main{flex-basis:130px}.control-settings{grid-template-columns:1fr 1fr;gap:5px}
+ .advanced-card{padding:7px}.advanced-card h3{font-size:9px}.advanced-card label{font-size:8px}
+ .advanced-card input:not([type=range]),.field-inline input{padding:6px;font-size:11px}
+ .advanced-apply,.advanced-buttons button{min-height:27px;padding:5px;font-size:8px}
+ .extruder-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+ .extruder-head h2{font-size:14px}.extruder-head p{font-size:8px}
+}
+@media(max-height:450px) and (orientation:landscape){.page-viewport{overflow-y:auto}}
+@media (display-mode: standalone){.top{padding-top:max(4px,env(safe-area-inset-top))}}
+
+
+/* Home fit, target visibility, and revised Control layout */
+.temp{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto 1fr;align-content:center;column-gap:8px}
+.temp h3{grid-column:1/-1;grid-row:1}
+.temp .value{grid-column:1;grid-row:2;align-self:center;white-space:nowrap}
+.temp .target{grid-column:2;grid-row:2;align-self:center;text-align:right;white-space:nowrap;margin:0}
+.temp .bar{grid-column:1/-1}
+.home-quick{display:none}
+.control-page{display:none;flex:none;min-height:min-content;gap:9px}
+.control-page.active{display:flex}
+.control-layout{display:grid;grid-template-columns:minmax(120px,.65fr) minmax(180px,1fr) minmax(270px,1.3fr);gap:9px;min-height:250px}
+.control-layout>.z-panel,.control-layout>.jog-panel{min-height:230px}
+.control-layout .z-panel{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+.control-layout .z-panel .z-up,.control-layout .z-panel .z-down{grid-column:auto}
+.control-side{padding:10px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.control-side h3{margin:2px 0 0;font-size:10px;letter-spacing:.7px;color:#c9d4dd}
+.control-side .position-bar{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.control-side .position{padding:7px 3px}
+.control-side .position b{font-size:clamp(10px,1.2vw,15px)}
+.control-side .position span{font-size:8px}
+.control-side .increment-row{gap:5px}
+.control-side .increment{min-height:36px;font-size:11px}
+.control-side .home-grid{gap:5px}
+.control-side .home-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.control-side .home-grid .home-all{grid-column:1/-1}
+.control-side .home-btn{min-height:36px;font-size:10px}
+.control-side .z-tilt-control{width:100%;min-height:36px;background:#342750;border-color:#5d438b}
+.control-main,.control-top,.extrude-grid{display:none!important}
+@media(max-width:900px){
+ .control-layout{grid-template-columns:minmax(90px,.6fr) minmax(140px,1fr) minmax(220px,1.3fr);gap:6px;min-height:205px}
+ .control-layout>.z-panel,.control-layout>.jog-panel{min-height:195px}
+ .control-side{padding:7px;gap:5px}
+ .control-side .position{padding:5px 2px}
+ .control-side .increment{min-height:31px;font-size:9px;padding:4px}
+ .control-side .home-btn,.control-side .z-tilt-control{min-height:31px;font-size:8px}
+}
+@media(max-width:700px) and (orientation:portrait){
+ .control-layout{grid-template-columns:minmax(85px,.55fr) minmax(0,1fr);min-height:0}
+ .control-layout>.z-panel,.control-layout>.jog-panel{min-height:210px}
+ .control-side{grid-column:1/-1}
+ .control-side .position b{font-size:16px}
+ .control-side .increment{min-height:42px;font-size:12px}
+ .control-side .home-btn,.control-side .z-tilt-control{min-height:42px;font-size:11px}
+ .control-settings{grid-template-columns:1fr}
+}
+@media(max-width:900px) and (orientation:landscape){
+ .control-layout{grid-template-columns:minmax(85px,.6fr) minmax(140px,1fr) minmax(200px,1.2fr);min-height:185px}
+ .control-layout>.z-panel,.control-layout>.jog-panel{min-height:175px}
+ .control-layout .jog-btn{font-size:18px}
+ .control-side{gap:4px;padding:5px}
+ .control-side .position{padding:3px 2px}
+ .control-side .position b{font-size:11px}
+ .control-side .position span{font-size:7px}
+ .control-side h3{font-size:8px;margin:0}
+ .control-side .increment{min-height:27px;font-size:8px}
+ .control-side .home-btn,.control-side .z-tilt-control{min-height:27px;font-size:7px}
+ .control-settings{grid-template-columns:1fr 1fr}
+}
+.home-page{min-height:0}
+.workspace{min-height:0}
+@media(max-height:800px){
+ .job{min-height:clamp(110px,20vh,170px);padding:clamp(5px,1.2vh,10px);gap:clamp(5px,1vw,10px)}
+ .preview{min-height:0}
+ .filename{font-size:clamp(11px,1.7vh,16px)}
+ .meta{font-size:clamp(8px,1.2vh,11px);margin-top:2px}
+ .progress-row{margin-top:clamp(4px,1vh,10px)}
+ .progress{height:clamp(6px,1.3vh,10px)}.pct{font-size:clamp(15px,2.5vh,21px)}
+ .stats{margin-top:clamp(5px,1vh,9px);gap:5px}
+ .stat b{font-size:clamp(10px,1.8vh,14px)}
+ .divider{margin:clamp(4px,.8vh,7px) 0}
+ .details{gap:4px}.detail b{font-size:clamp(9px,1.4vh,12px)}
+ .actions{padding:clamp(4px,1vh,8px);gap:clamp(4px,.8vh,7px);grid-template-rows:minmax(36px,1fr) minmax(36px,1fr) minmax(34px,.8fr)}
+ .action{min-height:0;font-size:clamp(10px,1.7vh,14px);gap:2px}
+ .action small{font-size:clamp(7px,1vh,9px)}
+ .stop{min-height:0}
+}
+@media(max-width:900px) and (orientation:landscape){
+ .temps .temp{height:clamp(48px,14vh,62px);padding:4px 7px 8px}
+ .temp h3{font-size:8px}.temp .value{font-size:clamp(16px,4vh,21px)}
+ .temp .unit{font-size:8px}.temp .target{font-size:clamp(6px,1.7vh,8px)}
+ .workspace{grid-template-columns:minmax(0,1fr) minmax(165px,.68fr);gap:5px}
+ .job{grid-template-columns:clamp(54px,10vw,82px) minmax(0,1fr);gap:5px;padding:5px;min-height:0}
+ .preview{min-height:0}.progress-row{margin-top:4px}.stats{margin-top:4px}
+ .stats .stat b{font-size:clamp(9px,2.5vh,12px)}.stat span,.detail span{font-size:6px}
+ .divider{margin:3px 0}.details .detail b{font-size:8px}
+ .actions{padding:4px;gap:4px;grid-template-rows:minmax(30px,1fr) minmax(30px,1fr) minmax(30px,.8fr)}
+ .action{font-size:clamp(8px,2.5vh,11px)}.action small{font-size:6px}
+}
+@media(max-width:700px) and (orientation:portrait){
+ .workspace{grid-template-columns:1fr;gap:6px}
+ .job{min-height:clamp(112px,18vh,150px);grid-template-columns:minmax(58px,22%) minmax(0,1fr);gap:7px;padding:7px}
+ .actions{grid-template-columns:1fr 1fr;grid-template-rows:minmax(34px,6vh) minmax(34px,6vh) minmax(32px,5.5vh);gap:5px;padding:6px}
+ .action{min-height:0;font-size:12px}.stop{grid-column:1/3}
+ .temps .temp{height:clamp(64px,8vh,76px);padding:7px 9px 10px}
+ .temp .value{font-size:clamp(19px,5vw,25px)}.temp .target{font-size:clamp(7px,2vw,9px)}
+}
+.macro-head-actions{display:flex;gap:7px}
+.macro-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+.macro-picker-box{width:min(560px,94vw);max-height:88dvh;display:flex;flex-direction:column}
+.macro-picker-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.macro-picker-head h2{margin:0 0 6px}.macro-picker-head p{margin:0;color:var(--muted);font-size:12px}
+.macro-picker-head button,.macro-picker-tools button,.macro-picker-actions button{min-height:38px;padding:8px 12px;border:1px solid #30404e;border-radius:9px;background:#24313d;font-weight:800}
+.macro-picker-tools,.macro-picker-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex:none}
+.macro-picker-list{overflow:auto;min-height:90px;max-height:55vh;margin-top:10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:6px}
+.macro-check{display:flex;align-items:center;gap:8px;min-width:0;padding:9px;border:1px solid var(--line);border-radius:9px;background:#0c151e;font-size:11px;overflow-wrap:anywhere}
+.macro-check input{width:17px;height:17px;flex:none;accent-color:#2196f3}
+.macro-check[hidden]{display:none}
+.macro-picker-actions #macroPickerApply{background:#0878dd}
+.macro-picker-search{width:100%;min-height:42px;padding:10px 12px;border:1px solid #30404e;border-radius:10px;background:#0c151e;color:var(--text);font:inherit;outline:none}
+.macro-picker-search:focus{border-color:#1689ed;box-shadow:0 0 0 2px #1689ed33}
+.xy-origin{grid-column:1;grid-row:3;justify-self:start;align-self:end;display:flex;align-items:center;gap:5px;padding:3px 5px;color:#9bb0bf;font-size:10px;pointer-events:none}
+.xy-origin-dot{width:9px;height:9px;border-radius:50%;background:#ffca62;border:1px solid #fff2c6;box-shadow:0 0 6px #ffca6280}
+.extruder-direct-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.extruder-direct-controls button{min-height:42px;border:1px solid #35516a;border-radius:10px;background:#17324a;color:#e6f3ff;font-weight:900}
+.extruder-direct-controls button[data-extrusion-action="retract"]{background:#3a2227;border-color:#684047}
+.extruder-direct-controls button:disabled{opacity:.4;filter:saturate(.5)}
+.extruder-ready-note{font-size:10px;color:var(--muted);margin-top:6px}
+@media(max-width:430px){.macro-head-actions{gap:4px}.macro-head-actions .files-tool{font-size:8px;padding:8px}.macro-picker-list{grid-template-columns:1fr 1fr}}
+
+/* Keep the main workspace sized to the space above the fixed tab bar. */
+.home-page{display:flex;flex:1;flex-direction:column;min-height:0}
+.home-page>.temps{flex:none}
+.home-page>.workspace{flex:1;min-height:0}
+.control-page.active{display:flex;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.control-layout{flex:none;min-height:0}
+.control-layout>.z-panel,.control-layout>.jog-panel{min-height:0}
+@media(max-width:900px){.control-layout{flex:1;min-height:0}}
+@media(max-width:900px) and (orientation:landscape){
+ .control-layout{grid-template-columns:minmax(62px,.42fr) minmax(130px,1fr) minmax(190px,1.25fr);min-height:calc(100dvh - 162px)}
+ .control-layout>.z-panel,.control-layout>.jog-panel{min-height:0}
+}
+@media(max-height:380px) and (orientation:landscape){
+ .control-layout{min-height:calc(100dvh - 162px)}
+ .control-side{gap:2px;padding:3px}
+ .control-side h3{font-size:7px;line-height:1;margin:0}
+ .control-side .position-bar{gap:2px}
+ .control-side .position{padding:2px 1px}
+ .control-side .position b{font-size:9px}
+ .control-side .position span{font-size:6px;margin-top:0}
+ .control-side .increment-row{gap:2px}
+ .control-side .increment{min-height:21px;padding:2px;font-size:7px}
+ .control-side .home-grid{gap:2px}
+ .control-side .home-btn,.control-side .z-tilt-control{min-height:20px;padding:2px;font-size:6px;line-height:1}
+ .control-layout .jog-btn{font-size:15px}
+ .control-layout .z-panel{padding:4px;gap:3px}
+ .control-layout .jog-panel{padding:4px;gap:3px}
+}
+@media(max-width:700px) and (orientation:portrait){
+ .control-layout{display:grid;grid-template-rows:175px auto;align-content:start;flex:none;min-height:0}
+ .control-layout>.z-panel,.control-layout>.jog-panel{height:175px;min-height:0}
+ .control-layout>.control-side{min-height:0}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="logo">V</div>
+  <div><div class="title">V-CORE</div><div class="subtitle">KLIPPER · MOONRAKER</div></div>
+  <div class="top-spacer"></div>
+  <div class="top-sensors">
+    <span class="top-chip" id="controllerFanChip">CTRL --%</span>
+    <span class="top-chip" id="toolheadFanChip">TOOL --%</span>
+    <span class="top-chip sensor-chip" id="filamentChip">FILAMENT · --</span>
+  </div>
+  <button class="top-button" id="printerDiagBtn" aria-label="Printer diagnostics">⚙</button>
+  <button class="top-button fullscreen-button" id="fullscreenBtn" aria-label="Toggle full screen">⛶</button>
+  <div class="connection"><span class="dot"></span><span id="connText">CONNECTING</span></div>
+  <div class="status idle" id="status">OFFLINE</div>
+</header>
+
+<main>
+<div class="page-viewport" id="pageViewport">
+<div class="home-page" id="homePage">
+<section class="temps">
+  <button class="card temp nozzle temp-click" data-heater="nozzle" aria-label="Set nozzle temperature"><h3>NOZZLE</h3><div class="value"><span id="nozzle">--</span><span class="unit"> °C</span></div><div class="target">target <span id="nozzleTarget">--</span> °C</div><div class="bar"><i id="nozzleBar"></i></div></button>
+  <button class="card temp bed temp-click" data-heater="bed" aria-label="Set bed temperature"><h3>BED</h3><div class="value"><span id="bed">--</span><span class="unit"> °C</span></div><div class="target">target <span id="bedTarget">--</span> °C</div><div class="bar"><i id="bedBar"></i></div></button>
+  <div class="card temp chamber" aria-label="Chamber temperature"><h3>CHAMBER</h3><div class="value"><span id="chamber">--</span><span class="unit"> °C</span></div><div class="target">target <span id="chamberTarget">--</span> °C</div><div class="bar"><i id="chamberBar"></i></div></div>
+  <button class="card temp fan temp-click" data-heater="fan" aria-label="Set part cooling fan"><h3>PART FAN</h3><div class="value"><span id="fan">--</span><span class="unit"> %</span></div><div class="target">cooling output</div><div class="bar"><i id="fanBar"></i></div></button>
+</section>
+
+<section class="workspace">
+  <article class="card job">
+    <div class="preview" id="preview"><div class="placeholder">NO ACTIVE PRINT</div></div>
+    <div class="jobinfo">
+      <div class="filename" id="filename">No active print</div>
+      <div class="meta" id="meta">Waiting for Moonraker…</div>
+      <div class="progress-row"><div class="progress"><i id="progressBar"></i></div><div class="pct" id="progress">0%</div></div>
+      <div class="stats">
+        <div class="stat"><b id="elapsed">00:00:00</b><span>Elapsed</span></div>
+        <div class="stat"><b id="remaining">--:--:--</b><span>Remaining</span></div>
+        <div class="stat"><b id="layer">--</b><span>Layer</span></div>
+      </div>
+      <div class="divider"></div>
+      <div class="details">
+        <div class="detail"><b id="speed">--</b><span>Speed</span></div>
+        <div class="detail"><b id="flow">--</b><span>Flow</span></div>
+        <div class="detail"><b id="zheight">--</b><span>Z Height</span></div>
+      </div>
+    </div>
+  </article>
+
+  <aside class="card actions">
+    <button class="action pause" id="pauseBtn">Ⅱ<small>PAUSE</small></button>
+    <button class="action resume" id="resumeBtn">▶<small>RESUME</small></button>
+    <button class="action stop" id="stopBtn">■ &nbsp; STOP<small>CANCEL CURRENT PRINT</small></button>
+  </aside>
+</section>
+
+</div>
+
+
+<section class="files-page" id="filesPage">
+  <div class="files-toolbar">
+    <button class="files-tool" id="filesUp" title="Parent folder">↑</button>
+    <div class="files-path" id="filesPath">gcodes/</div>
+    <button class="files-tool" id="filesRefresh" title="Refresh files">↻ REFRESH</button>
+  </div>
+  <div class="files-list" id="filesList">
+    <div class="files-loading">Loading G-code files…</div>
+  </div>
+</section>
+
+<section class="control-page" id="controlPage">
+  <div class="control-layout">
+    <div class="card z-panel">
+      <button class="jog-btn jog-z z-up" data-jog="Z" data-dir="1">Z +</button>
+      <button class="jog-btn jog-z z-down" data-jog="Z" data-dir="-1">Z −</button>
+    </div>
+    <div class="card jog-panel">
+      <button class="jog-btn jog-x up" data-jog="X" data-dir="1">X +</button>
+      <button class="jog-btn jog-x left" data-jog="Y" data-dir="-1">Y −</button>
+      <button class="jog-btn center">JOG</button>
+      <button class="jog-btn jog-x right" data-jog="Y" data-dir="1">Y +</button>
+      <button class="jog-btn jog-x down" data-jog="X" data-dir="-1">X −</button>
+      <div class="xy-origin" aria-label="XY machine origin, zero zero"><span class="xy-origin-dot"></span><span>0,0</span></div>
+    </div>
+    <aside class="card control-side">
+      <h3>CURRENT POSITION</h3>
+      <div class="position-bar">
+        <div class="position"><b id="posX">--</b><span>X</span></div>
+        <div class="position"><b id="posY">--</b><span>Y</span></div>
+        <div class="position"><b id="posZ">--</b><span>Z</span></div>
+      </div>
+      <h3>MOVEMENT INCREMENT</h3>
+      <div class="increment-row">
+        <button class="increment" data-step="0.1">0.1</button>
+        <button class="increment selected" data-step="1">1</button>
+        <button class="increment" data-step="10">10</button>
+        <button class="increment" data-step="100">100</button>
+      </div>
+      <h3>HOME AXIS</h3>
+      <div class="home-grid">
+        <button class="home-btn" data-home="X">HOME X</button>
+        <button class="home-btn" data-home="Y">HOME Y</button>
+        <button class="home-btn" data-home="Z">HOME Z</button>
+        <button class="home-btn home-all" data-home="X Y Z">HOME ALL</button>
+      </div>
+      <button class="home-btn z-tilt-control" id="zTiltControlBtn">Z-TILT CALIBRATION</button>
+    </aside>
+  </div>
+  <section class="control-settings">
+    <section class="card advanced-card motion-settings"><h3>MOTION LIMITS</h3>
+      <div class="motion-fields">
+        <label>Velocity (mm/s)<input id="machineVelocity" type="number" min="1" max="1000" step="1" inputmode="decimal"></label>
+        <label>Square corner (mm/s)<input id="squareCornerVelocity" type="number" min="0" max="50" step="0.1" inputmode="decimal"></label>
+        <label>Acceleration (mm/s²)<input id="machineAccel" type="number" min="1" max="100000" step="100" inputmode="decimal"></label>
+        <label>Min cruise ratio<input id="minimumCruiseRatio" type="number" min="0" max="1" step="0.01" inputmode="decimal"></label>
+      </div>
+      <button class="advanced-apply" id="applyMotionLimits">APPLY MOTION LIMITS</button>
+    </section>
+    <section class="card advanced-card led-settings"><h3>LED STRIP</h3>
+      <div class="led-controls"><select id="ledSelect" aria-label="LED strip"></select><input id="ledColor" type="color" value="#ffffff" aria-label="LED color"><label>Brightness <input id="ledBrightness" type="range" min="0" max="100" value="100"></label><button class="advanced-apply" id="applyLed">SET COLOR</button></div>
+      <div id="ledHint" class="small-note">Detecting configured Klipper LED strips…</div>
+    </section>
+  </section>
+</section>
+
+<section class="extruder-page" id="extruderPage">
+  <div class="extruder-head"><div><h2>Extruder</h2><p>Filament movement, flow, and pressure advance</p></div><button class="files-tool temp-click" data-heater="nozzle">NOZZLE TEMP</button></div>
+  <div class="extruder-grid">
+    <section class="card advanced-card"><h3>PRESSURE ADVANCE</h3><p>Runtime tuning for the active print session.</p>
+      <label>Advance (mm)<input id="paValue" type="number" min="0" max="2" step="0.005" inputmode="decimal" placeholder="e.g. 0.04"></label>
+      <label>Smooth time (s)<input id="paSmooth" type="number" min="0.01" max="0.2" step="0.001" inputmode="decimal" placeholder="Klipper default"></label>
+      <button class="advanced-apply" id="applyPressureAdvance">APPLY PRESSURE ADVANCE</button>
+    </section>
+    <section class="card advanced-card"><h3>FLOW MULTIPLIER</h3><p>Set the extrusion multiplier for the current job.</p>
+      <div class="field-inline"><input id="flowValue" type="number" min="50" max="150" step="1" value="100" inputmode="decimal"><span>%</span></div>
+      <div class="advanced-buttons"><button id="flowDown">− 5%</button><button id="flowSet">SET FLOW</button><button id="flowUp">+ 5%</button></div>
+    </section>
+    <section class="card advanced-card"><h3>FILAMENT MOVEMENT</h3><p>Available while the printer is idle. Heat the nozzle first.</p>
+      <label>Distance<input id="filamentDistance" type="number" min="1" max="100" step="1" value="10" inputmode="decimal"></label>
+      <div class="advanced-buttons"><button id="loadFilament">LOAD</button><button class="danger-control" id="unloadFilament">UNLOAD</button></div>
+      <div class="extruder-direct-controls"><button data-extrusion-action="extrude" id="extrudeDirectBtn" disabled>EXTRUDE 10</button><button data-extrusion-action="retract" id="retractDirectBtn" disabled>RETRACT 10</button></div>
+      <div class="extruder-ready-note" id="extruderReadyNote">Nozzle must be above 170 °C to move filament.</div>
+    </section>
+    <section class="card advanced-card extruder-readout"><h3>EXTRUDER STATUS</h3><div>Nozzle <b><span id="extruderTemp">--</span> °C</b></div><div>Target <b><span id="extruderTarget">--</span> °C</b></div><div>Flow factor <b><span id="extruderFlow">100</span>%</b></div><div>Extrusion min temp <b><span id="minExtrudeTemp">--</span> °C</b></div></section>
+  </div>
+</section>
+
+<section class="console-page" id="consolePage">
+  <div class="console-head"><div><h2>G-code console</h2><p>Send a Klipper command to the printer.</p></div><button class="files-tool" id="consoleClear">CLEAR</button></div>
+  <div class="console-log" id="consoleLog" aria-live="polite"><div class="console-hint">Console output will appear here.</div></div>
+  <form class="console-entry" id="consoleForm"><input id="consoleInput" autocomplete="off" autocapitalize="characters" placeholder="Enter G-code or a command…"><button type="submit">SEND</button></form>
+</section>
+
+<section class="macros-page" id="macrosPage">
+  <div class="macros-head"><div><h2>Printer macros</h2><p>Tap a macro to review it, then confirm to run it.</p></div><div class="macro-head-actions"><button class="files-tool" id="chooseMacrosBtn">CHOOSE MACROS</button><button class="files-tool" id="macrosRefresh">↻ REFRESH</button></div></div>
+  <div class="macro-list" id="macroList"><div class="files-loading">Connect to Moonraker to load macros.</div></div>
+</section>
+
+</div>
+<nav class="nav">
+  <button class="active" data-page="home"><span class="ico">⌂</span>HOME</button>
+  <button data-page="control"><span class="ico">✣</span>CONTROL</button>
+  <button data-page="extruder"><span class="ico">⇄</span>EXTRUDER</button>
+  <button data-page="files"><span class="ico">▢</span>FILES</button>
+  <button data-page="console"><span class="ico">›_</span>CONSOLE</button>
+  <button data-page="macros"><span class="ico">▦</span>MACROS</button>
+</nav>
+</main>
+</div>
+
+
+<div class="temp-modal" id="tempModal" role="dialog" aria-modal="true" aria-labelledby="tempTitle">
+  <div class="temp-box">
+    <div class="temp-head">
+      <div><h2 id="tempTitle">Set Temperature</h2><div class="temp-current">Current <span id="tempCurrent">--</span> · Target <span id="tempTargetCurrent">--</span></div></div>
+      <button class="temp-close" id="tempX" style="width:52px;height:44px">✕</button>
+    </div>
+    <label id="tempInputLabel" for="tempInput">Target temperature (°C)</label>
+    <input class="temp-input" id="tempInput" type="number" inputmode="decimal" min="0" max="300" step="1">
+    <input id="fanRange" type="range" min="0" max="100" step="1" aria-label="Part fan speed" style="display:none;width:100%;accent-color:#20d66b">
+    <div class="temp-presets" id="tempPresets"></div>
+    <button class="temp-off" id="tempOff">TURN HEATER OFF</button>
+    <div class="temp-actions"><button class="temp-close" id="tempCancel">CANCEL</button><button class="temp-apply" id="tempApply">SET</button></div>
+    <div class="temp-note" id="tempNote">Changes are sent directly to Klipper through Moonraker.</div>
+  </div>
+</div>
+
+
+<div class="modal diag-modal" id="diagModal">
+  <div class="modalbox">
+    <div class="diag-head">
+      <div><h2>Printer diagnostics</h2><p id="diagSummary">Detecting Moonraker / Klipper capabilities…</p></div>
+      <button id="diagClose" style="width:52px;height:44px;border-radius:10px;background:#24313d">✕</button>
+    </div>
+    <div class="diag-grid" id="diagGrid"></div>
+    <div class="diag-actions">
+      <button id="diagRefresh">RECHECK</button>
+      <button id="diagClose2">CLOSE</button>
+    </div>
+  </div>
+</div>
+<div class="modal" id="macroPickerModal" role="dialog" aria-modal="true" aria-labelledby="macroPickerTitle">
+  <div class="modalbox macro-picker-box">
+    <div class="macro-picker-head"><div><h2 id="macroPickerTitle">Choose macros</h2><p>Checked macros appear in the main grid.</p></div><button id="macroPickerClose" aria-label="Close">✕</button></div>
+    <input class="macro-picker-search" id="macroSearch" type="search" placeholder="Type to filter macro names…" autocomplete="off" aria-label="Filter macros">
+    <div class="macro-picker-tools"><button id="macroSelectAll">SELECT ALL</button><button id="macroSelectNone">CLEAR</button></div>
+    <div class="macro-picker-list" id="macroPickerList"></div>
+    <div class="macro-picker-actions"><button id="macroPickerCancel">CANCEL</button><button id="macroPickerApply">SHOW SELECTED</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="confirm">
+  <div class="modalbox">
+    <h2>Stop print?</h2>
+    <p>This will cancel the current print. The printer will not automatically resume it.</p>
+    <div class="modal-actions"><button id="cancelConfirm">KEEP PRINTING</button><button class="danger" id="confirmStop">STOP PRINT</button></div>
+  </div>
+</div>
+
+<script>
+/*
+  V-Core touchscreen HMI
+  The included Nginx server proxies Moonraker on the same origin.
+  For a plain static server, optionally pass ?moonraker=http://PI-IP:7125.
+*/
+const params = new URLSearchParams(location.search);
+const MR = (params.get("moonraker") || location.origin).replace(/\/$/,"");
+const WS = MR.replace(/^http:/,"ws:").replace(/^https:/,"wss:") + "/websocket";
+const hostIsIp = /^[0-9.]+$/.test(location.hostname) || location.hostname.includes(":");
+const printerLabel = hostIsIp ? "V-CORE" : location.hostname.split(".")[0].toUpperCase();
+document.querySelector(".title").textContent = printerLabel;
+document.title = `${printerLabel} HMI`;
+let ws=null, rpcId=1, reconnectTimer=null, objects={};
+let connected=false, currentState="offline", currentExtruderTemp=NaN;
+let printerInfo={}, serverInfo={};
+
+/* Printer compatibility layer. */
+const PRINTER_CONFIG = {
+  extruder: "extruder",
+  bed: "heater_bed",
+  fan: "fan",
+  chamberPreferred: ["chamber","heater_generic chamber","temperature_fan chamber"],
+  chamberSensorPreferred: ["temperature_sensor chamber","temperature_fan chamber","heater_generic chamber"]
+};
+
+const capabilities = {
+  extruder:false, bed:false, fan:false,
+  chamberSensor:false, chamberHeater:false,
+  zTilt:false,
+  printStats:false, motionReport:false, gcodeMove:false, toolheadObject:false,
+  controllerFanObject:null, toolheadFanObject:null, filamentObject:null, ledObjects:[],
+  objects:[], chamberSensorObject:null, chamberHeaterObject:null,
+  klipperVersion:"--", moonrakerVersion:"--"
+};
+
+function objectExists(name){return capabilities.objects.includes(name)}
+function findObject(preferred,matcher){
+  for(const p of preferred) if(objectExists(p)) return p;
+  return capabilities.objects.find(matcher)||null;
+}
+function setCapabilityCard(id,enabled){
+  const el=document.querySelector(`[data-heater="${id}"]`);
+  if(!el)return;
+  el.classList.toggle("disabled",!enabled);
+  el.disabled=!enabled;
+  el.title=enabled?"Open controls":"Not available in current Klipper configuration";
+}
+function manualAllowed(){
+  return connected && ["idle","standby","complete","cancelled","error"].includes(currentState);
+}
+function applyCapabilities(){
+  setCapabilityCard("nozzle",capabilities.extruder);
+  setCapabilityCard("bed",capabilities.bed);
+  setCapabilityCard("fan",capabilities.fan);
+  document.querySelectorAll("[data-jog],[data-home],[data-extrude]").forEach(b=>{
+    b.disabled=!manualAllowed();
+  });
+  updateExtruderActionButtons();
+  $("zTiltControlBtn").disabled=!manualAllowed()||!capabilities.zTilt;
+  document.querySelectorAll(".macro-button").forEach(b=>b.disabled=!manualAllowed());
+  updatePrintControls();
+}
+function capabilityStatus(){
+  return [
+    ["Extruder",capabilities.extruder,"extruder"],
+    ["Bed heater",capabilities.bed,"heater_bed"],
+    ["Part fan",capabilities.fan,"fan"],
+    ["Z tilt",capabilities.zTilt,"z_tilt"],
+    ["Chamber sensor",capabilities.chamberSensor,capabilities.chamberSensorObject||"not found"],
+    ["Chamber heater",capabilities.chamberHeater,capabilities.chamberHeaterObject||"not found"],
+    ["Print status",capabilities.printStats,"print_stats"],
+    ["Motion position",capabilities.motionReport,"motion_report"],
+    ["G-code state",capabilities.gcodeMove,"gcode_move"]
+  ];
+}
+function renderDiagnostics(){
+  const grid=$("diagGrid");if(!grid)return;
+  grid.innerHTML="";
+  capabilityStatus().forEach(([name,ok,detail])=>{
+    const d=document.createElement("div");
+    d.className="diag-item "+(ok?"ok":"bad");
+    d.innerHTML=`<b class="${ok?"diag-ok":"diag-bad"}">${ok?"✓":"✕"} ${name}</b><span>${detail}</span>`;
+    grid.appendChild(d);
+  });
+  $("diagSummary").textContent=`Klipper ${capabilities.klipperVersion} · Moonraker ${capabilities.moonrakerVersion}`+
+    (capabilities.chamberHeater?"":" · Chamber heater not detected; chamber control is unavailable.");
+}
+async function detectCapabilities(){
+  try{
+    const list=await rpc("printer.objects.list");
+    capabilities.objects=(list.objects||[]).slice().sort();
+    capabilities.extruder=objectExists(PRINTER_CONFIG.extruder);
+    capabilities.bed=objectExists(PRINTER_CONFIG.bed);
+    capabilities.fan=objectExists(PRINTER_CONFIG.fan);
+    capabilities.zTilt=objectExists("z_tilt");
+    capabilities.printStats=objectExists("print_stats");
+    capabilities.motionReport=objectExists("motion_report");
+    capabilities.gcodeMove=objectExists("gcode_move");
+    capabilities.toolheadObject=objectExists("toolhead");
+    capabilities.controllerFanObject=capabilities.objects.find(o=>/^controller_fan\s+/i.test(o))||null;
+    capabilities.toolheadFanObject=capabilities.objects.find(o=>/^(heater_fan|fan_generic|controller_fan)\s+.*(toolhead|hotend|extruder)/i.test(o))||null;
+    capabilities.filamentObject=capabilities.objects.find(o=>/^(filament_switch_sensor|filament_motion_sensor)\s+/i.test(o))||null;
+    capabilities.ledObjects=capabilities.objects.filter(o=>/^(neopixel|led|dotstar|pca9632)\s+/i.test(o));
+
+    capabilities.chamberSensorObject=findObject(
+      PRINTER_CONFIG.chamberSensorPreferred,
+      o=>/chamber/i.test(o)&&/(temperature_sensor|temperature_fan|heater_generic)/i.test(o)
+    );
+    capabilities.chamberHeaterObject=findObject(
+      PRINTER_CONFIG.chamberPreferred,
+      o=>/chamber/i.test(o)&&/(heater_generic|temperature_fan|heater_bed)/i.test(o)
+    );
+    capabilities.chamberSensor=!!capabilities.chamberSensorObject;
+    capabilities.chamberHeater=!!capabilities.chamberHeaterObject;
+
+    try{printerInfo=await rpc("printer.info");capabilities.klipperVersion=printerInfo.version||"--"}catch{}
+    try{serverInfo=await rpc("server.info");capabilities.moonrakerVersion=serverInfo.version||serverInfo?.moonraker_version||"--"}catch{}
+
+    const wanted={};
+    ["print_stats","extruder","heater_bed","fan","gcode_move","motion_report","toolhead","configfile"].forEach(o=>{
+      if(objectExists(o))wanted[o]=null;
+    });
+    capabilities.objects.filter(o=>/chamber/i.test(o)).forEach(o=>wanted[o]=null);
+    [capabilities.controllerFanObject,capabilities.toolheadFanObject,capabilities.filamentObject].filter(Boolean).forEach(o=>wanted[o]=null);
+    if(Object.keys(wanted).length){
+      const initial=await rpc("printer.objects.subscribe",{objects:wanted});
+      if(initial?.status){mergeStatus(initial.status);updateStatus(objects)}
+    }
+
+    applyCapabilities();renderLedOptions();updateExtruderPanel();renderDiagnostics();renderMacros();
+  }catch(e){
+    toast("Capability detection failed");renderDiagnostics();
+  }
+}
+
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmtTemp=v=>Number.isFinite(v)?v.toFixed(1):"--";
+function mergeStatus(update){
+  Object.entries(update||{}).forEach(([key,value])=>{
+    if(value&&typeof value==="object"&&!Array.isArray(value))
+      objects[key]={...(objects[key]||{}),...value};
+    else objects[key]=value;
+  });
+}
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2600)}
+function rpc(method, params={}){
+  return new Promise((resolve,reject)=>{
+    if(!ws || ws.readyState!==WebSocket.OPEN) return reject(new Error("Not connected"));
+    const id=rpcId++; ws.send(JSON.stringify({jsonrpc:"2.0",method,id,params}));
+    const timeout=setTimeout(()=>reject(new Error("RPC timeout")),5000);
+    const handler=e=>{try{const m=JSON.parse(e.data);if(m.id===id){clearTimeout(timeout);ws.removeEventListener("message",handler);m.error?reject(new Error(m.error.message||"RPC error")):resolve(m.result)}}catch{}};
+    ws.addEventListener("message",handler);
+  });
+}
+function setConn(ok){
+  connected=ok;$("connText").textContent=ok?"CONNECTED":"OFFLINE";
+  $("status").textContent=ok?stateLabel(currentState):"OFFLINE";
+  $("status").className="status "+(!ok?"idle":currentState==="printing"?"":"paused");
+  updatePrintControls();
+}
+function stateLabel(s){return ({printing:"PRINTING",paused:"PAUSED",complete:"COMPLETE",error:"ERROR",standby:"READY",cancelled:"CANCELLED",idle:"READY"})[s]||"READY"}
+
+function updateStatus(s){
+  if(!s)return;
+  if(s.extruder){currentExtruderTemp=Number(s.extruder.temperature);$("nozzle").textContent=fmtTemp(s.extruder.temperature);$("nozzleTarget").textContent=fmtTemp(s.extruder.target);$("nozzleBar").style.width=clamp((s.extruder.temperature/300)*100,0,100)+"%";$("extruderTemp").textContent=fmtTemp(s.extruder.temperature);$("extruderTarget").textContent=fmtTemp(s.extruder.target);updateExtruderActionButtons()}
+  if(s.heater_bed){$("bed").textContent=fmtTemp(s.heater_bed.temperature);$("bedTarget").textContent=fmtTemp(s.heater_bed.target);$("bedBar").style.width=clamp((s.heater_bed.temperature/120)*100,0,100)+"%"}
+  const chamberKey=capabilities.chamberSensorObject||capabilities.chamberHeaterObject||
+    Object.keys(s).find(k=>/chamber/i.test(k)&&s[k]&&typeof s[k].temperature==="number");
+  if(chamberKey&&s[chamberKey]){
+    const temp=s[chamberKey].temperature,target=s[chamberKey].target;
+    if(Number.isFinite(temp))$("chamber").textContent=fmtTemp(temp);
+    if(Number.isFinite(target))$("chamberTarget").textContent=fmtTemp(target);
+    else if(!capabilities.chamberHeater)$("chamberTarget").textContent="--";
+    if(Number.isFinite(temp))$("chamberBar").style.width=clamp((temp/80)*100,0,100)+"%";
+  }
+  if(s.fan){const f=clamp((s.fan.speed??0)*100,0,100);$("fan").textContent=Math.round(f);$("fanBar").style.width=f+"%"}
+  if(s.print_stats){
+    const p=s.print_stats;
+    currentState=p.state||"idle";setConn(connected);applyCapabilities();
+    const progress=Number(p.progress||0)*100;
+    $("progress").textContent=Math.round(progress)+"%";$("progressBar").style.width=progress+"%";
+    $("filename").textContent=p.filename||"No active print";
+    $("meta").textContent=p.filename?(p.message||"G-code job"):"Waiting for print";
+    $("elapsed").textContent=duration(p.print_duration||0);
+    $("remaining").textContent=Number.isFinite(p.print_duration)&&progress>0?duration((p.print_duration/progress*100)-p.print_duration):"--:--:--";
+    $("status").textContent=stateLabel(currentState);
+    $("status").className="status "+(currentState==="printing"?"":currentState==="paused"?"paused":currentState==="error"?"error":"idle");
+    updatePrintControls();
+  }
+  if(s.motion_report){
+    const pos=Array.isArray(s.motion_report.live_position)?s.motion_report.live_position:null;
+    if(pos){
+      if(Number.isFinite(pos[0]))$("posX").textContent=pos[0].toFixed(2)+" mm";
+      if(Number.isFinite(pos[1]))$("posY").textContent=pos[1].toFixed(2)+" mm";
+      if(Number.isFinite(pos[2])){$("posZ").textContent=pos[2].toFixed(2)+" mm";$("zheight").textContent=pos[2].toFixed(1)+" mm"}
+    }
+    const z=Array.isArray(s.motion_report.live_position)?s.motion_report.live_position[2]:null;
+    if(Number.isFinite(z))$("zheight").textContent=z.toFixed(1)+" mm";
+    const vel=s.motion_report.live_velocity;if(Number.isFinite(vel))$("speed").textContent=Math.round(vel)+" mm/s";
+  }
+  if(s.toolhead){
+    [["max_velocity","machineVelocity"],["square_corner_velocity","squareCornerVelocity"],["max_accel","machineAccel"],["minimum_cruise_ratio","minimumCruiseRatio"]].forEach(([key,id])=>{
+      const el=$(id);if(el&&Number.isFinite(s.toolhead[key])&&document.activeElement!==el)el.value=s.toolhead[key];
+    });
+  }
+  if(s.gcode_move){
+    const sf=s.gcode_move.speed_factor,lf=s.gcode_move.extrude_factor;
+    if(Number.isFinite(sf))$("speed").textContent=Math.round(sf*100)+"%";
+    if(Number.isFinite(lf)){
+      $("flow").textContent=Math.round(lf*100)+"%";$("extruderFlow").textContent=Math.round(lf*100);
+      if(document.activeElement!==$("flowValue"))$("flowValue").value=Math.round(lf*100);
+    }
+  }
+  const fanStatus=(key,id)=>{
+    const f=key&&s[key];const percent=Number.isFinite(f?.speed)?Math.round(clamp(f.speed*100,0,100)):null;
+    $(id).textContent=(id==="controllerFanChip"?"CTRL ":"TOOL ")+(percent===null?"--":percent)+"%";
+    $(id).classList.toggle("active-chip",percent!==null&&percent>0);
+  };
+  fanStatus(capabilities.controllerFanObject,"controllerFanChip");
+  fanStatus(capabilities.toolheadFanObject,"toolheadFanChip");
+  const sensor=capabilities.filamentObject&&s[capabilities.filamentObject];
+  const filament=$("filamentChip");
+  filament.textContent=!sensor?"FILAMENT · N/A":sensor.enabled===false?"FILAMENT · OFF":sensor.filament_detected===true?"FILAMENT · IN":sensor.filament_detected===false?"FILAMENT · OUT":"FILAMENT · ?";
+  filament.classList.toggle("sensor-ok",sensor?.filament_detected===true);
+  filament.classList.toggle("sensor-warn",sensor?.filament_detected===false);
+}
+function updateExtruderPanel(){
+  const obj=objects.configfile?.settings?.extruder||objects.configfile?.config?.extruder;
+  const temp=Number(obj?.min_extrude_temp);
+  $("minExtrudeTemp").textContent=Number.isFinite(temp)?String(temp):"170";
+}
+function updatePrintControls(){
+  const active=connected&&(currentState==="printing"||currentState==="paused");
+  $("pauseBtn").disabled=!connected||currentState!=="printing";
+  $("resumeBtn").disabled=!connected||currentState!=="paused";
+  $("stopBtn").disabled=!active;
+}
+function duration(sec){sec=Math.max(0,Math.floor(Number(sec)||0));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return [h,m,s].map((x,i)=>i===0?String(x).padStart(2,"0"):String(x).padStart(2,"0")).join(":")}
+function updateClock(){const d=new Date();$("clock").textContent=d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});$("date").textContent=d.toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"})}
+
+
+async function connect(){
+  clearTimeout(reconnectTimer);
+  try{
+    ws=new WebSocket(WS);
+    ws.onopen=async()=>{
+      setConn(true);
+      await detectCapabilities();
+    };
+    ws.onmessage=e=>{
+      try{
+        const m=JSON.parse(e.data);
+        if(m.method==="notify_status_update"){
+          const s=m.params?.[0]||{};
+          mergeStatus(s);updateStatus(objects);
+        }else if(m.method==="notify_gcode_response"){
+          appendConsoleLine(String(m.params?.[0]||""),"console-response");
+        }
+      }catch{}
+    };
+    ws.onclose=()=>{setConn(false);applyCapabilities();reconnectTimer=setTimeout(connect,2500)};
+    ws.onerror=()=>{try{ws.close()}catch{}};
+  }catch(e){setConn(false);reconnectTimer=setTimeout(connect,2500)}
+}
+async function command(method){
+  try{await rpc(method);toast(method==="printer.print.pause"?"Print paused":method==="printer.print.resume"?"Print resumed":"Print stopped")}
+  catch(e){toast("Command failed: "+e.message)}
+}
+
+let activeSetting=null;
+const settingOptions={
+  nozzle:{title:"Nozzle temperature",heater:"extruder",max:300,presets:[180,200,210,220,240,250]},
+  bed:{title:"Bed temperature",heater:"heater_bed",max:120,presets:[50,60,70,80,100,110]},
+  fan:{title:"Part cooling fan",max:100,presets:[0,25,50,75,100]}
+};
+function closeSetting(){activeSetting=null;$("tempModal").classList.remove("show")}
+function showSetting(key){
+  if(!connected){toast("Moonraker is offline");return}
+  const option=settingOptions[key];
+  if(!option||(key==="nozzle"&&!capabilities.extruder)||(key==="bed"&&!capabilities.bed)||
+    (key==="fan"&&!capabilities.fan)){
+    toast("This control is unavailable in the printer configuration");return;
+  }
+  activeSetting=key;
+  const fan=key==="fan";
+  const current=fan?Number(objects.fan?.speed||0)*100:
+    Number(objects[option.heater||capabilities.chamberHeaterObject]?.target||0);
+  $("tempTitle").textContent=option.title;
+  $("tempCurrent").textContent=fan?`${Math.round(Number(objects.fan?.speed||0)*100)}%`:
+    `${$(key).textContent} °C`;
+  $("tempTargetCurrent").textContent=fan?"—":`${Number.isFinite(current)?current:0} °C`;
+  $("tempInputLabel").textContent=fan?"Fan speed (%)":"Target temperature (°C)";
+  $("tempInput").max=String(option.max);
+  $("tempInput").value=String(Math.round(Number.isFinite(current)?current:0));
+  $("tempInput").style.display=fan?"none":"block";
+  $("tempInputLabel").style.display=fan?"none":"block";
+  $("fanRange").style.display=fan?"block":"none";
+  $("fanRange").value=String(Math.round(Number.isFinite(current)?current:0));
+  $("tempOff").textContent=fan?"TURN FAN OFF":"TURN HEATER OFF";
+  const presets=$("tempPresets");presets.innerHTML="";
+  option.presets.forEach(value=>{
+    const b=document.createElement("button");b.type="button";b.textContent=fan?`${value}%`:`${value}°`;
+    b.onclick=()=>{if(fan){$("fanRange").value=String(value);$("tempInput").value=String(value)}else $("tempInput").value=String(value)};
+    presets.appendChild(b);
+  });
+  $("tempModal").classList.add("show");
+  if(!fan)setTimeout(()=>$("tempInput").focus(),0);
+}
+async function applySetting(value){
+  if(!activeSetting)return;
+  const key=activeSetting,option=settingOptions[key];
+  const amount=Number(value);
+  if(!Number.isFinite(amount)||amount<0||amount>option.max){toast(`Enter a value from 0 to ${option.max}`);return}
+  const script=key==="fan"?`M106 S${Math.round(amount*255/100)}`:
+    `SET_HEATER_TEMPERATURE HEATER=${option.heater||capabilities.chamberHeaterObject} TARGET=${Math.round(amount)}`;
+  try{await rpc("printer.gcode.script",{script});toast(key==="fan"?`Part fan set to ${Math.round(amount)}%`:`${option.title} set to ${Math.round(amount)}°C`);closeSetting()}
+  catch(e){toast("Could not apply setting: "+e.message)}
+}
+document.querySelectorAll(".temp-click").forEach(b=>b.onclick=()=>showSetting(b.dataset.heater));
+document.querySelectorAll(".temp-close").forEach(b=>b.onclick=closeSetting);
+$("tempModal").onclick=e=>{if(e.target===$("tempModal"))closeSetting()};
+$("fanRange").oninput=()=>$("tempInput").value=$("fanRange").value;
+$("tempInput").oninput=()=>{if(activeSetting==="fan")$("fanRange").value=$("tempInput").value};
+$("tempApply").onclick=()=>applySetting(activeSetting==="fan"?$("fanRange").value:$("tempInput").value);
+$("tempOff").onclick=()=>applySetting(0);
+
+let jogStep=1;
+function selectStep(step){
+  jogStep=Number(step);
+  document.querySelectorAll(".increment").forEach(b=>b.classList.toggle("selected",Number(b.dataset.step)===jogStep));
+}
+document.querySelectorAll(".increment").forEach(b=>b.onclick=()=>selectStep(b.dataset.step));
+
+async function jog(axis,dir){
+  if(!manualAllowed()){toast("Manual movement locked while printer is active");return}
+  const distance=(jogStep*dir).toFixed(jogStep<1?1:0);
+  try{
+    await rpc("printer.gcode.script",{script:`SAVE_GCODE_STATE NAME=HMI_JOG_STATE\nG91\nG1 ${axis}${distance} F${axis==="Z"?1200:6000}\nRESTORE_GCODE_STATE NAME=HMI_JOG_STATE MOVE=0`});
+  }catch(e){toast("Jog failed: "+e.message)}
+}
+document.querySelectorAll("[data-jog]").forEach(b=>b.onclick=()=>jog(b.dataset.jog,Number(b.dataset.dir)));
+
+document.querySelectorAll("[data-home]").forEach(b=>b.onclick=async()=>{
+  if(!manualAllowed()){toast("Homing locked while printer is active");return}
+  try{await rpc("printer.gcode.script",{script:`G28 ${b.dataset.home}`});toast(`Homing ${b.dataset.home}`)}
+  catch(e){toast("Homing failed: "+e.message)}
+});
+document.querySelectorAll("[data-extrude]").forEach(b=>b.onclick=async()=>{
+  if(!manualAllowed()){toast("Extrusion locked while printer is active");return}
+  const mm=Number(b.dataset.extrude);
+  try{
+    await rpc("printer.gcode.script",{script:`SAVE_GCODE_STATE NAME=HMI_EXTRUDE_STATE\nM83\nG1 E${mm} F300\nRESTORE_GCODE_STATE NAME=HMI_EXTRUDE_STATE MOVE=0`});
+    toast(mm>0?`Extruded ${mm} mm`:`Retracted ${Math.abs(mm)} mm`);
+  }catch(e){toast("Extrusion failed: "+e.message)}
+});
+
+function updateExtruderActionButtons(){
+  const ready=Number.isFinite(currentExtruderTemp)&&currentExtruderTemp>170;
+  document.querySelectorAll("[data-extrusion-action]").forEach(button=>button.disabled=!manualAllowed()||!ready);
+  const note=$("extruderReadyNote");
+  if(note)note.textContent=ready?"Nozzle is hot enough for filament movement.":"Nozzle must be above 170 °C to move filament.";
+}
+document.querySelectorAll("[data-extrusion-action]").forEach(button=>button.onclick=async()=>{
+  if(!manualAllowed()){toast("Extrusion locked while printer is active");return}
+  if(!(Number.isFinite(currentExtruderTemp)&&currentExtruderTemp>170)){toast("Heat nozzle above 170 °C first");return}
+  const amount=button.dataset.extrusionAction==="extrude"?10:-10;
+  try{
+    await rpc("printer.gcode.script",{script:`SAVE_GCODE_STATE NAME=HMI_EXTRUDE_STATE\nM83\nG1 E${amount} F300\nRESTORE_GCODE_STATE NAME=HMI_EXTRUDE_STATE MOVE=0`});
+    toast(amount>0?`Extruded ${amount} mm`:`Retracted ${Math.abs(amount)} mm`);
+  }catch(e){toast("Extrusion failed: "+e.message)}
+});
+
+async function homeAll(){
+  if(!manualAllowed()){toast("Homing locked while printer is active");return}
+  try{await rpc("printer.gcode.script",{script:"G28"});toast("Homing all axes")}
+  catch(e){toast("Homing failed: "+e.message)}
+}
+async function runZTilt(){
+  if(!manualAllowed()){toast("Z tilt locked while printer is active");return}
+  if(!capabilities.zTilt){toast("Z tilt is not configured on this printer");return}
+  try{await rpc("printer.gcode.script",{script:"Z_TILT_ADJUST"});toast("Z-tilt calibration started")}
+  catch(e){toast("Z-tilt calibration failed: "+e.message)}
+}
+$("zTiltControlBtn").onclick=runZTilt;
+
+$("pauseBtn").onclick=()=>command("printer.print.pause");
+$("resumeBtn").onclick=()=>command("printer.print.resume");
+let pendingConfirmation=null;
+function resetActionConfirm(){
+  pendingConfirmation=null;
+  $("confirm").querySelector("h2").textContent="Stop print?";
+  $("confirm").querySelector("p").textContent="This will cancel the current print. The printer will not automatically resume it.";
+  $("cancelConfirm").textContent="KEEP PRINTING";
+  $("confirmStop").textContent="STOP PRINT";
+  $("confirmStop").className="danger";
+}
+$("stopBtn").onclick=()=>showActionConfirm("Stop print?","This will cancel the current print. The printer will not automatically resume it.","STOP PRINT",()=>command("printer.print.cancel"),true,"KEEP PRINTING");
+$("cancelConfirm").onclick=()=>{$("confirm").classList.remove("show");resetActionConfirm()};
+$("confirmStop").onclick=async()=>{
+  if(!pendingConfirmation)return;
+  const run=pendingConfirmation;pendingConfirmation=null;$("confirm").classList.remove("show");
+  await run();resetActionConfirm();
+};
+function showPage(page){
+  const home=$("homePage");
+  home.classList.toggle("hidden",page!=="home");
+  ["controlPage","filesPage","extruderPage","consolePage","macrosPage"].forEach(id=>
+    $(id).classList.toggle("active",id===`${page}Page`));
+  document.querySelectorAll(".nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+  if(page==="files" && connected) loadFiles();
+  if(page==="extruder") updateExtruderPanel();
+  if(page==="macros" && connected) renderMacros();
+}
+document.querySelectorAll(".nav button[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+
+
+$("applyMotionLimits").onclick=async()=>{
+  if(!manualAllowed()){toast("Motion tuning is available while the printer is idle");return}
+  const values=[["VELOCITY","machineVelocity"],["SQUARE_CORNER_VELOCITY","squareCornerVelocity"],["ACCEL","machineAccel"],["MINIMUM_CRUISE_RATIO","minimumCruiseRatio"]];
+  const parts=[];
+  for(const [name,id] of values){const v=Number($(id).value);if(!Number.isFinite(v)||$(id).value===""||v<Number($(id).min)||v>Number($(id).max)){toast("Enter valid values for all motion limits");return}parts.push(name+"="+v)}
+  try{await rpc("printer.gcode.script",{script:"SET_VELOCITY_LIMIT "+parts.join(" ")});toast("Motion limits updated for this session")}
+  catch(e){toast("Could not set motion limits: "+e.message)}
+};
+function renderLedOptions(){
+  const select=$("ledSelect");if(!select)return;
+  select.innerHTML="";
+  capabilities.ledObjects.forEach(o=>{const opt=document.createElement("option");opt.value=o;opt.textContent=o.replace(/^[^ ]+\s+/,"");select.appendChild(opt)});
+  $("ledHint").textContent=capabilities.ledObjects.length?capabilities.ledObjects.length+" configured LED strip(s) detected.":"No Klipper LED strip object was found.";
+  $("applyLed").disabled=!capabilities.ledObjects.length;
+}
+$("applyLed").onclick=async()=>{
+  const object=$("ledSelect").value;if(!object){toast("No LED strip is configured");return}
+  const name=object.replace(/^[^ ]+\s+/,"");
+  const hex=$("ledColor").value;const gain=Number($("ledBrightness").value)/100;
+  const channel=n=>Math.round(parseInt(hex.slice(n,n+2),16)/255*gain*1000)/1000;
+  try{await rpc("printer.gcode.script",{script:"SET_LED LED="+name+" RED="+channel(1)+" GREEN="+channel(3)+" BLUE="+channel(5)});toast("LED color applied")}
+  catch(e){toast("Could not set LED: "+e.message)}
+};
+$("applyPressureAdvance").onclick=async()=>{
+  if(!connected){toast("Moonraker is offline");return}
+  const value=Number($("paValue").value),smoothText=$("paSmooth").value,smooth=Number(smoothText);
+  if($("paValue").value===""||!Number.isFinite(value)||value<0||value>2||(smoothText!==""&&(!Number.isFinite(smooth)||smooth<.01||smooth>.2))){toast("Enter a pressure advance from 0 to 2 mm and smooth time from 0.01 to 0.2 s");return}
+  const script="SET_PRESSURE_ADVANCE ADVANCE="+value+(smoothText!==""?" SMOOTH_TIME="+smooth:"");
+  try{await rpc("printer.gcode.script",{script});toast("Pressure advance applied for this session")}
+  catch(e){toast("Could not set pressure advance: "+e.message)}
+};
+async function setFlow(){
+  const value=Number($("flowValue").value);
+  if(!Number.isFinite(value)||value<50||value>150){toast("Flow must be between 50% and 150%");return}
+  try{await rpc("printer.gcode.script",{script:"M221 S"+Math.round(value)});toast("Flow set to "+Math.round(value)+"%")}
+  catch(e){toast("Could not set flow: "+e.message)}
+}
+$("flowDown").onclick=()=>{$("flowValue").value=clamp(Number($("flowValue").value)-5,50,150);setFlow()};
+$("flowUp").onclick=()=>{$("flowValue").value=clamp(Number($("flowValue").value)+5,50,150);setFlow()};
+$("flowSet").onclick=setFlow;
+async function moveFilament(sign){
+  if(!manualAllowed()){toast("Filament movement is available while the printer is idle");return}
+  const mm=Number($("filamentDistance").value),minimum=Number($("minExtrudeTemp").textContent)||170;
+  if(!Number.isFinite(mm)||mm<1||mm>100){toast("Enter a filament distance from 1 to 100 mm");return}
+  if((Number(objects.extruder?.temperature)||0)<minimum){toast("Heat nozzle to at least "+minimum+"°C first");return}
+  try{await rpc("printer.gcode.script",{script:"SAVE_GCODE_STATE NAME=HMI_FILAMENT\nM83\nG1 E"+(sign*mm)+" F300\nRESTORE_GCODE_STATE NAME=HMI_FILAMENT MOVE=0"});toast(sign>0?"Loaded "+mm+" mm":"Unloaded "+mm+" mm")}
+  catch(e){toast("Filament move failed: "+e.message)}
+}
+$("loadFilament").onclick=()=>moveFilament(1);
+$("unloadFilament").onclick=()=>moveFilament(-1);
+$("fullscreenBtn").onclick=async()=>{
+  try{
+    if(document.fullscreenElement){await document.exitFullscreen();return}
+    try{await document.documentElement.requestFullscreen({navigationUI:"hide"})}
+    catch{await document.documentElement.requestFullscreen()}
+  }catch{toast("Install from the Chrome menu or use Android kiosk mode for a full-screen app")}
+};
+document.addEventListener("fullscreenchange",()=>$("fullscreenBtn").textContent=document.fullscreenElement?"⤢":"⛶");
+
+function appendConsoleLine(value,className=""){
+  const log=$("consoleLog");
+  log.querySelector(".console-hint")?.remove();
+  const line=document.createElement("div");line.className="console-line "+className;
+  line.textContent=value;log.appendChild(line);log.scrollTop=log.scrollHeight;
+}
+$("consoleForm").onsubmit=async e=>{
+  e.preventDefault();
+  const script=$("consoleInput").value.trim();
+  if(!script)return;
+  if(!connected){toast("Moonraker is offline");return}
+  appendConsoleLine(`> ${script}`,"console-command");
+  $("consoleInput").value="";
+  try{await rpc("printer.gcode.script",{script});appendConsoleLine("Command sent")}
+  catch(error){appendConsoleLine(`Error: ${error.message}`,"console-error");toast("Console command failed")}
+};
+$("consoleClear").onclick=()=>{$("consoleLog").innerHTML='<div class="console-hint">Console output will appear here.</div>'};
+
+const MACRO_SELECTION_KEY="vkor-hmi-selected-macros";
+let macroSelectionDraft=new Set();
+function allMacroNames(){
+  return capabilities.objects.filter(name=>/^gcode_macro\s+/i.test(name))
+    .map(name=>name.replace(/^gcode_macro\s+/i,"").trim())
+    .filter(name=>name&&!name.startsWith("_"))
+    .sort((a,b)=>a.localeCompare(b));
+}
+function savedMacroSelection(names){
+  try{
+    const raw=localStorage.getItem(MACRO_SELECTION_KEY);
+    return raw===null?new Set(names):new Set(JSON.parse(raw).filter(name=>names.includes(name)));
+  }catch{return new Set(names)}
+}
+function renderMacros(){
+  const list=$("macroList");if(!list)return;
+  if(!connected){list.innerHTML='<div class="files-empty"><div><b>Moonraker offline</b>Reconnect to load printer macros.</div></div>';return}
+  const names=allMacroNames();
+  list.innerHTML="";
+  if(!names.length){list.innerHTML='<div class="files-empty"><div><b>No macros found</b>Klipper reports no public G-code macros.</div></div>';return}
+  const selected=savedMacroSelection(names);
+  const visible=names.filter(name=>selected.has(name));
+  if(!visible.length){list.innerHTML='<div class="files-empty"><div><b>No macros selected</b>Choose macros to show them here.</div></div>';return}
+  visible.forEach(name=>{
+    const button=document.createElement("button");button.className="macro-button";
+    button.disabled=!manualAllowed();button.innerHTML='<span>'+escapeHtml(name)+'</span><span>RUN ›</span>';
+    button.onclick=()=>{
+      if(!manualAllowed()){toast("Macros locked while printer is active");return}
+      showActionConfirm("Run macro?","Run <b>"+escapeHtml(name)+"</b>? This macro may move or heat the printer.","RUN MACRO",async()=>{
+        try{await rpc("printer.gcode.script",{script:name});toast("Ran "+name)}
+        catch(error){toast("Macro failed: "+error.message)}
+      });
+    };
+    list.appendChild(button);
+  });
+}
+function renderMacroPicker(){
+  const names=allMacroNames(),list=$("macroPickerList");
+  list.innerHTML="";
+  $("macroSearch").value="";
+  if(!names.length){list.innerHTML='<div class="files-empty"><div><b>No macros found</b>Moonraker reports no public G-code macros.</div></div>';return}
+  macroSelectionDraft=savedMacroSelection(names);
+  names.forEach((name,index)=>{
+    const label=document.createElement("label");label.className="macro-check";
+    const input=document.createElement("input");input.type="checkbox";input.value=name;input.checked=macroSelectionDraft.has(name);input.id="macroChoice"+index;
+    const text=document.createElement("span");text.textContent=name;
+    input.onchange=()=>{if(input.checked)macroSelectionDraft.add(name);else macroSelectionDraft.delete(name)};
+    label.append(input,text);list.appendChild(label);
+  });
+  filterMacroPicker();
+}
+function filterMacroPicker(){
+  const query=$("macroSearch").value.trim().toLocaleLowerCase();
+  $("macroPickerList").querySelectorAll(".macro-check").forEach(label=>{label.hidden=!label.querySelector("span").textContent.toLocaleLowerCase().includes(query)});
+}
+$("macroSearch").addEventListener("input",filterMacroPicker);
+function closeMacroPicker(){$("macroPickerModal").classList.remove("show")}
+$("chooseMacrosBtn").onclick=()=>{renderMacroPicker();$("macroPickerModal").classList.add("show")};
+$("macroPickerClose").onclick=closeMacroPicker;
+$("macroPickerCancel").onclick=closeMacroPicker;
+$("macroPickerModal").onclick=e=>{if(e.target===$("macroPickerModal"))closeMacroPicker()};
+$("macroSelectAll").onclick=()=>{$("macroPickerList").querySelectorAll('input[type="checkbox"]').forEach(input=>{input.checked=true;input.dispatchEvent(new Event("change"))})};
+$("macroSelectNone").onclick=()=>{$("macroPickerList").querySelectorAll('input[type="checkbox"]').forEach(input=>{input.checked=false;input.dispatchEvent(new Event("change"))})};
+$("macroPickerApply").onclick=()=>{
+  try{localStorage.setItem(MACRO_SELECTION_KEY,JSON.stringify([...macroSelectionDraft]));closeMacroPicker();renderMacros()}
+  catch{toast("Could not save macro choices in this browser")}
+};
+$("macrosRefresh").onclick=async()=>{if(!connected){toast("Moonraker is offline");return}await detectCapabilities();renderMacros()};
+
+
+/* ---------- Moonraker file browser ---------- */
+let filesPath="gcodes/";
+let filesCache=[];
+let fileThumbCache=new Map();
+
+function normalizeFilePath(p){
+  p=String(p||"").replace(/^\/+/,"");
+  if(p===""||p===".")return "gcodes/";
+  if(!p.startsWith("gcodes/"))p="gcodes/"+p;
+  return p.replace(/\/+/g,"/").replace(/\/$/,"")+"/";
+}
+function fileBaseName(p){
+  const s=String(p||"").replace(/\/$/,"");
+  return s.split("/").pop()||"";
+}
+function formatBytes(bytes){
+  bytes=Number(bytes)||0;
+  if(bytes<1024)return `${bytes} B`;
+  if(bytes<1024*1024)return `${(bytes/1024).toFixed(0)} KB`;
+  return `${(bytes/1024/1024).toFixed(1)} MB`;
+}
+function formatDate(ts){
+  if(!Number.isFinite(Number(ts)))return "";
+  return new Date(Number(ts)*1000).toLocaleDateString([],{
+    year:"numeric",month:"short",day:"numeric"
+  });
+}
+function fileInCurrentDir(path){
+  const dir=normalizeFilePath(filesPath);
+  const p=String(path||"").replace(/^\/+/,"");
+  if(!p.startsWith(dir))return false;
+  const rest=p.slice(dir.length);
+  return rest.length>0 && !rest.includes("/");
+}
+function thumbCandidates(path){
+  // Moonraker exposes metadata through server.database; thumbnail URLs vary
+  // by slicer/frontend, so use the standard Moonraker file metadata thumbnail
+  // endpoint first and gracefully fall back to the G-code icon.
+  const encoded=encodeURIComponent(path);
+  return [
+    `${MR}/server/files/gcodes/${encoded}/thumbnail`,
+    `${MR}/server/files/gcodes/${encoded}?thumbnail=true`
+  ];
+}
+function renderFileCard(item){
+  const isDir=item.type==="directory";
+  const name=item.name||fileBaseName(item.path);
+  const card=document.createElement("article");
+  card.className="file-card "+(isDir?"folder":"");
+  card.dataset.path=item.path||"";
+
+  const thumb=document.createElement("div");
+  thumb.className="file-thumb";
+  if(isDir){
+    thumb.innerHTML='<div class="file-icon">▰</div>';
+  }else{
+    thumb.innerHTML='<div class="file-icon">▤</div>';
+    // Moonraker's file list may include thumbnail metadata depending on version.
+    const thumbPath=item.thumbnail||item.thumbnail_path||item.thumbnails?.[0]?.relative_path;
+    if(thumbPath){
+      const img=document.createElement("img");
+      img.alt="";
+      img.src=thumbPath.startsWith("http")?thumbPath:`${MR}/server/files/gcodes/${thumbPath.replace(/^\/+/,"").replace(/^gcodes\//,"")}`;
+      img.onerror=()=>img.remove();
+      thumb.innerHTML="";
+      thumb.appendChild(img);
+    }
+  }
+
+  const body=document.createElement("div");
+  body.className="file-body";
+  body.innerHTML=`<div class="file-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+    <div class="file-meta">${isDir?"Folder":`${formatBytes(item.size)} · ${formatDate(item.modified)}`}</div>`;
+
+  const actions=document.createElement("div");
+  actions.className="file-actions";
+
+  if(isDir){
+    const open=document.createElement("button");
+    open.textContent="OPEN";
+    open.onclick=()=>{filesPath=normalizeFilePath(item.path);loadFiles()};
+    actions.appendChild(open);
+  }else{
+    const print=document.createElement("button");
+    print.className="print-file";
+    print.textContent="PRINT";
+    print.onclick=()=>confirmPrintFile(item.path);
+    actions.appendChild(print);
+
+    const del=document.createElement("button");
+    del.className="delete-file";
+    del.textContent="DELETE";
+    del.onclick=()=>confirmDeleteFile(item.path,name);
+    actions.appendChild(del);
+  }
+
+  card.append(thumb,body,actions);
+  return card;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+async function loadFiles(){
+  if(!connected){
+    $("filesList").innerHTML='<div class="files-empty"><div><b>Moonraker offline</b>Reconnect to browse G-code files.</div></div>';
+    return;
+  }
+  $("filesPath").textContent=filesPath;
+  $("filesList").innerHTML='<div class="files-loading">Loading G-code files…</div>';
+  try{
+    const result=await rpc("server.files.list",{root:"gcodes"});
+    const all=Array.isArray(result)?result:(Array.isArray(result?.files)?result.files:Array.isArray(result?.result)?result.result:[]);
+    const dir=normalizeFilePath(filesPath);
+    const visible=[];
+    const folders=new Map();
+
+    for(const raw of all){
+      const rawPath=String(raw.path||raw.filename||raw.name||"").replace(/^\/+/,"");
+      if(!rawPath)continue;
+      const p=rawPath.startsWith("gcodes/")?rawPath:"gcodes/"+rawPath;
+      if(!p.startsWith(dir))continue;
+      const rest=p.slice(dir.length);
+      if(rest.includes("/")){
+        const folder=rest.split("/")[0];
+        if(folder&&!folders.has(folder))
+          folders.set(folder,{type:"directory",name:folder,path:dir+folder+"/"});
+      }else if(rest){
+        visible.push({...raw,path:p,type:"file",name:raw.filename||raw.name||fileBaseName(p)});
+      }
+    }
+
+    // Fetch metadata (including slicer-generated thumbnails) for visible G-code files.
+    await Promise.all(visible.map(async item=>{
+      try{
+        const meta=await rpc("server.files.metadata",{filename:item.path.replace(/^gcodes\//,"")});
+        if(meta){
+          item.metadata=meta;
+          if(Array.isArray(meta.thumbnails)&&meta.thumbnails.length){
+            const thumbs=meta.thumbnails.slice().sort((a,b)=>(b.width||0)-(a.width||0));
+            const t=thumbs[0];
+            if(t?.relative_path)item.thumbnail=t.relative_path;
+          }
+          if(meta.size!=null)item.size=meta.size;
+          if(meta.modified!=null)item.modified=meta.modified;
+        }
+      }catch{}
+    }));
+
+    filesCache=[...folders.values(),...visible.sort((a,b)=>a.name.localeCompare(b.name))];
+    $("filesList").innerHTML="";
+    if(!filesCache.length){
+      $("filesList").innerHTML='<div class="files-empty"><div><b>No G-code files</b>This folder is empty.</div></div>';
+      return;
+    }
+    filesCache.forEach(item=>$("filesList").appendChild(renderFileCard(item)));
+  }catch(e){
+    $("filesList").innerHTML=`<div class="files-empty"><div><b>Could not load files</b>${escapeHtml(e.message)}</div></div>`;
+  }
+}
+function confirmPrintFile(path){
+  const name=fileBaseName(path);
+  showActionConfirm(
+    "Start print?",
+    `Start <b>${escapeHtml(name)}</b> now? Any current print must be finished or cancelled first.`,
+    "START PRINT",
+    async()=>{
+      try{
+        await rpc("printer.print.start",{filename:path.replace(/^gcodes\//,"")});
+        toast(`Started ${name}`);
+        showPage("home");
+      }catch(e){toast("Could not start print: "+e.message)}
+    }
+  );
+}
+function confirmDeleteFile(path,name){
+  showActionConfirm(
+    "Delete file?",
+    `Delete <b>${escapeHtml(name)}</b>? This cannot be undone.`,
+    "DELETE FILE",
+    async()=>{
+      try{
+        await rpc("server.files.delete_file",{filename:path.replace(/^gcodes\//,"")});
+        toast(`Deleted ${name}`);
+        await loadFiles();
+      }catch(e){toast("Could not delete file: "+e.message)}
+    },
+    true
+  );
+}
+function showActionConfirm(title,message,action,fn,danger=false,cancelLabel="CANCEL"){
+  const modal=$("confirm");
+  modal.querySelector("h2").innerHTML=title;
+  modal.querySelector("p").innerHTML=message;
+  const button=$("confirmStop");
+  pendingConfirmation=fn;
+  $("cancelConfirm").textContent=cancelLabel;
+  button.textContent=action;
+  button.className=danger?"danger":"";
+  modal.classList.add("show");
+}
+$("filesRefresh").onclick=()=>loadFiles();
+$("filesUp").onclick=()=>{
+  const p=normalizeFilePath(filesPath);
+  if(p==="gcodes/")return;
+  const parts=p.replace(/^gcodes\//,"").split("/").filter(Boolean);
+  parts.pop();
+  filesPath="gcodes/"+(parts.length?parts.join("/")+"/":"");
+  loadFiles();
+};
+
+$("printerDiagBtn").onclick=()=>{$("diagModal").classList.add("show");renderDiagnostics()};
+$("diagClose").onclick=()=>$("diagModal").classList.remove("show");
+$("diagClose2").onclick=()=>$("diagModal").classList.remove("show");
+$("diagRefresh").onclick=async()=>{if(!connected){toast("Moonraker is offline");return}await detectCapabilities();toast("Printer capabilities rechecked")};
+applyCapabilities();
+
+connect();
+</script>
+</body>
+</html>
