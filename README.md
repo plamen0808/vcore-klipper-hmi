@@ -7,6 +7,7 @@ A responsive touchscreen interface for Klipper printers that expose the Moonrake
 - Home page with temperatures, fan state, print progress, and print controls
 - XY and Z jogging, homing, Z-tilt, and motion-limit controls
 - G-code file browser
+- Camera tab that displays Moonraker-configured webcam streams
 - Extruder controls, including guarded extrude/retract actions
 - Console and selectable macro pages
 - Responsive portrait and landscape layouts, with a fullscreen button

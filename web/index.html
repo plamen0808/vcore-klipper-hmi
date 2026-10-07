@@ -56,7 +56,7 @@ main{flex:1;min-height:0;padding:12px 18px;display:flex;flex-direction:column;ga
 .home-quick button{min-height:42px;flex:1;border-radius:11px;background:#173a54;border:1px solid #2a526c;font-weight:900;letter-spacing:.4px}
 .home-quick button:last-child{background:#342750;border-color:#5d438b}
 .action:disabled{opacity:.35;filter:saturate(.2);cursor:not-allowed}
-.nav{height:84px;position:sticky;bottom:0;z-index:4;background:var(--bg);display:grid;grid-template-columns:repeat(6,1fr);gap:10px;flex:none}.nav button{background:#0c151e;border:1px solid var(--line);border-radius:14px;color:#9eacb9;font-size:12px;font-weight:700;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px}.nav button.active{border-color:#168ff0;color:#40aeff;background:#092039}.nav .ico{font-size:21px}
+.nav{height:84px;position:sticky;bottom:0;z-index:4;background:var(--bg);display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;flex:none}.nav button{background:#0c151e;border:1px solid var(--line);border-radius:14px;color:#9eacb9;font-size:12px;font-weight:700;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px}.nav button.active{border-color:#168ff0;color:#40aeff;background:#092039}.nav .ico{font-size:21px}
 .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);opacity:0;background:#17222d;border:1px solid #2b3b49;padding:12px 18px;border-radius:10px;transition:.2s;pointer-events:none;z-index:20}.toast.show{opacity:1;transform:translateX(-50%)}
 .modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:10}.modal.show{display:flex}.modalbox{width:min(500px,90vw);background:#101923;border:1px solid #30404e;border-radius:18px;padding:24px}.modalbox h2{margin:0 0 10px}.modalbox p{color:#a9b6c1}.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}.modal-actions button{padding:12px 18px;border-radius:10px;background:#24313d}.modal-actions .danger{background:#c92f2a}
 .temp-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;background:#000b;z-index:30}
@@ -178,8 +178,9 @@ button:disabled{opacity:.38;filter:saturate(.2);cursor:not-allowed}
   .file-actions{gap:5px}.file-actions button{font-size:10px}
 }
 
-.console-page,.macros-page{display:none;flex:1;min-height:0;flex-direction:column;gap:10px}
-.console-page.active,.macros-page.active{display:flex}
+.console-page,.macros-page,.camera-page{display:none;flex:1;min-height:0;flex-direction:column;gap:10px}
+.console-page.active,.macros-page.active,.camera-page.active{display:flex}
+.camera-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}.camera-head h2{margin:0;font-size:20px}.camera-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.camera-tools{display:flex;align-items:center;gap:7px}.camera-tools select{max-width:min(44vw,240px);min-width:90px;padding:9px;border:1px solid #30404e;border-radius:9px;background:#0c151e;color:var(--text)}.camera-stage{position:relative;display:flex;align-items:center;justify-content:center;flex:1;min-height:180px;overflow:hidden;background:#050a0e;border:1px solid var(--line);border-radius:12px}.camera-stage img{display:block;width:100%;height:100%;object-fit:contain}.camera-message{padding:20px;color:var(--muted);text-align:center;line-height:1.5}.camera-message b{display:block;margin-bottom:5px;color:#dce6ef}
 .console-head,.macros-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}
 .console-head h2,.macros-head h2{margin:0;font-size:20px}.console-head p,.macros-head p{margin:4px 0 0;color:var(--muted);font-size:12px}
 .console-log{flex:1;min-height:160px;overflow:auto;padding:12px;background:#050a0e;border:1px solid var(--line);border-radius:12px;font:13px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -206,6 +207,7 @@ html,body{height:100%;height:100dvh;overflow:hidden}
 main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidden}
 .page-viewport{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:8px;scrollbar-width:thin}
 .home-page,.control-page,.files-page,.extruder-page,.console-page,.macros-page{flex:none;min-height:min-content}
+.camera-page.active{flex:1;min-height:0}
 .home-page{gap:9px}
 .temps{gap:8px}.temp{height:clamp(68px,11vh,92px);padding:9px 12px}
 .temp h3{font-size:10px;margin-bottom:0}.temp .value{font-size:clamp(22px,3vw,29px)}.unit{font-size:12px}
@@ -214,8 +216,8 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
 .job{grid-template-columns:clamp(90px,13vw,150px) minmax(0,1fr);gap:12px;padding:12px;min-height:200px}
 .actions{padding:11px;gap:9px}.action{min-height:86px;font-size:16px}.stop{min-height:68px}
 .home-quick button{min-height:38px}
-.nav{height:clamp(52px,8vh,64px);position:relative;bottom:auto;padding:5px max(8px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));gap:6px}
-.nav button{border-radius:10px;font-size:clamp(8px,1.2vw,10px);gap:2px}.nav .ico{font-size:17px}
+.nav{height:clamp(52px,8vh,64px);position:relative;bottom:auto;padding:5px max(8px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));gap:4px}
+.nav button{border-radius:10px;font-size:clamp(7px,1vw,9px);gap:2px}.nav .ico{font-size:17px}
 .control-page{gap:8px}.control-main{flex:0 0 clamp(170px,30vh,260px)}
 .control-settings{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .advanced-card{padding:12px}.advanced-card h3{margin:0 0 6px;font-size:12px;letter-spacing:.6px}
@@ -592,6 +594,11 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
   <div class="macro-list" id="macroList"><div class="files-loading">Connect to Moonraker to load macros.</div></div>
 </section>
 
+<section class="camera-page" id="cameraPage">
+  <div class="camera-head"><div><h2>Camera</h2><p id="cameraDescription">Printer camera feed</p></div><div class="camera-tools"><select id="cameraSelect" aria-label="Select camera" hidden></select><button class="files-tool" id="cameraRefresh">↻ REFRESH</button></div></div>
+  <div class="camera-stage" id="cameraStage"><div class="camera-message"><b>Loading camera feeds…</b>Looking for webcams configured in Moonraker.</div></div>
+</section>
+
 </div>
 <nav class="nav">
   <button class="active" data-page="home"><span class="ico">⌂</span>HOME</button>
@@ -600,6 +607,7 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
   <button data-page="files"><span class="ico">▢</span>FILES</button>
   <button data-page="console"><span class="ico">›_</span>CONSOLE</button>
   <button data-page="macros"><span class="ico">▦</span>MACROS</button>
+  <button data-page="camera"><span class="ico">📷</span>CAMERA</button>
 </nav>
 </main>
 </div>
@@ -1110,14 +1118,58 @@ $("confirmStop").onclick=async()=>{
 function showPage(page){
   const home=$("homePage");
   home.classList.toggle("hidden",page!=="home");
-  ["controlPage","filesPage","extruderPage","consolePage","macrosPage"].forEach(id=>
+  ["controlPage","filesPage","extruderPage","consolePage","macrosPage","cameraPage"].forEach(id=>
     $(id).classList.toggle("active",id===`${page}Page`));
   document.querySelectorAll(".nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
   if(page==="files" && connected) loadFiles();
   if(page==="extruder") updateExtruderPanel();
   if(page==="macros" && connected) renderMacros();
+  if(page==="camera") loadCameras();
 }
 document.querySelectorAll(".nav button[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+
+let cameraCache=[];
+function cameraMessage(title,message){
+  const box=document.createElement("div");box.className="camera-message";
+  const heading=document.createElement("b");heading.textContent=title;
+  const detail=document.createElement("span");detail.textContent=message;
+  box.append(heading,detail);$("cameraStage").replaceChildren(box);
+}
+function renderSelectedCamera(){
+  const camera=cameraCache.find(item=>(item.uid||item.name)===$("cameraSelect").value)||cameraCache[0];
+  if(!camera){cameraMessage("No camera selected","Configure a webcam in Moonraker, then refresh this page.");return}
+  $("cameraDescription").textContent=camera.location?`${camera.name} · ${camera.location}`:camera.name;
+  const image=document.createElement("img");image.alt=`${camera.name} live feed`;
+  image.style.transform=`scaleX(${camera.flip_horizontal?"-1":"1"}) scaleY(${camera.flip_vertical?"-1":"1"}) rotate(${Number(camera.rotation)||0}deg)`;
+  image.onerror=()=>{
+    if($("cameraSelect").value===(camera.uid||camera.name))
+      cameraMessage("Camera feed unavailable","Check the camera stream URL and that it is reachable from your phone.");
+  };
+  const base=`${location.protocol}//${location.hostname}/`;
+  image.src=new URL(camera.stream_url,base).href;
+  $("cameraStage").replaceChildren(image);
+}
+async function loadCameras(){
+  const select=$("cameraSelect");
+  if(!connected){cameraMessage("Moonraker offline","Reconnect to the printer, then refresh camera feeds.");return}
+  cameraMessage("Loading camera feeds…","Reading webcam settings from Moonraker.");
+  try{
+    const result=await rpc("server.webcams.list");
+    cameraCache=(result?.webcams||[]).filter(camera=>camera.enabled!==false&&camera.stream_url);
+    select.replaceChildren();
+    cameraCache.forEach((camera,index)=>{
+      const option=document.createElement("option");option.value=camera.uid||camera.name||String(index);option.textContent=camera.name||`Camera ${index+1}`;select.appendChild(option);
+    });
+    select.hidden=cameraCache.length<2;
+    if(!cameraCache.length){$("cameraDescription").textContent="Printer camera feed";cameraMessage("No webcam configured","Add or enable a webcam in Moonraker, then tap Refresh.");return}
+    select.value=select.options[0].value;
+    renderSelectedCamera();
+  }catch(error){
+    cameraMessage("Could not load cameras",error.message||"Moonraker webcam settings are unavailable.");
+  }
+}
+$("cameraSelect").onchange=renderSelectedCamera;
+$("cameraRefresh").onclick=loadCameras;
 
 
 $("applyMotionLimits").onclick=async()=>{
