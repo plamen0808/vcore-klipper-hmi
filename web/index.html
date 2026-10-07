@@ -663,9 +663,13 @@ const params = new URLSearchParams(location.search);
 const MR = (params.get("moonraker") || location.origin).replace(/\/$/,"");
 const WS = MR.replace(/^http:/,"ws:").replace(/^https:/,"wss:") + "/websocket";
 const hostIsIp = /^[0-9.]+$/.test(location.hostname) || location.hostname.includes(":");
-const printerLabel = hostIsIp ? "V-CORE" : location.hostname.split(".")[0].toUpperCase();
-document.querySelector(".title").textContent = printerLabel;
-document.title = `${printerLabel} HMI`;
+let printerLabel = hostIsIp ? "V-CORE" : location.hostname.split(".")[0].toUpperCase();
+function setPrinterLabel(label){
+  printerLabel=String(label||"V-CORE").trim().split(".")[0].toUpperCase();
+  document.querySelector(".title").textContent=printerLabel;
+  document.title=`${printerLabel} HMI`;
+}
+setPrinterLabel(printerLabel);
 let ws=null, rpcId=1, reconnectTimer=null, objects={};
 let connected=false, currentState="offline", currentExtruderTemp=NaN;
 let printerInfo={}, serverInfo={};
@@ -770,7 +774,11 @@ async function detectCapabilities(){
     capabilities.chamberSensor=!!capabilities.chamberSensorObject;
     capabilities.chamberHeater=!!capabilities.chamberHeaterObject;
 
-    try{printerInfo=await rpc("printer.info");capabilities.klipperVersion=printerInfo.version||"--"}catch{}
+    try{
+      printerInfo=await rpc("printer.info");
+      capabilities.klipperVersion=printerInfo.version||"--";
+      if(hostIsIp&&printerInfo.hostname)setPrinterLabel(printerInfo.hostname);
+    }catch{}
     try{serverInfo=await rpc("server.info");capabilities.moonrakerVersion=serverInfo.version||serverInfo?.moonraker_version||"--"}catch{}
 
     const wanted={};
