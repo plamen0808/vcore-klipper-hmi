@@ -1084,10 +1084,18 @@ function bindEnterAction(id,action=()=>{}){
   field.setAttribute("enterkeyhint","done");
   field.addEventListener("keydown",e=>{
     if(e.key!=="Enter"||e.isComposing)return;
-    e.preventDefault();
-    field.blur();
     action();
+    dismissKeyboard(field);
   });
+}
+function dismissKeyboard(field){
+  const hide=()=>{
+    field.blur();
+    if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
+    try{navigator.virtualKeyboard?.hide()}catch{}
+  };
+  hide();
+  setTimeout(hide,80);
 }
 bindEnterAction("tempInput",()=>applySetting(activeSetting==="fan"?$("fanRange").value:$("tempInput").value));
 bindEnterAction("machineVelocity",()=>$("applyMotionLimits").click());
@@ -1297,7 +1305,7 @@ function appendConsoleLine(value,className=""){
 }
 $("consoleForm").onsubmit=async e=>{
   e.preventDefault();
-  $("consoleInput").blur();
+  dismissKeyboard($("consoleInput"));
   const script=$("consoleInput").value.trim();
   if(!script)return;
   if(!connected){toast("Moonraker is offline");return}
