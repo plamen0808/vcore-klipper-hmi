@@ -236,11 +236,11 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
 .extruder-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .extruder-head h2{font-size:20px;margin:0}.extruder-head p{font-size:11px;color:var(--muted);margin:4px 0 0}
 .extruder-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.extruder-temps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.extruder-temps .temp{height:clamp(72px,10vh,90px)}
 .advanced-card>label{margin:8px 0}
 .field-inline{display:flex;align-items:center;gap:8px}.field-inline span{font-size:20px;color:var(--muted)}
 .advanced-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
 .advanced-buttons button{background:#172a39}.advanced-buttons button#flowSet{background:#075fbd}
-.advanced-buttons:has(#loadFilament){grid-template-columns:1fr 1fr}
 .danger-control{background:#542522!important}.extruder-readout>div{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px;color:#aab7c2}.extruder-readout b{color:var(--text)}
 @media(max-width:700px){
  .top{height:56px}.logo{width:30px;height:30px}.title{font-size:15px}.subtitle{font-size:8px}
@@ -250,7 +250,7 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
  .job{grid-template-columns:minmax(76px,25%) minmax(0,1fr);min-height:185px}
  .actions{grid-template-rows:60px 60px 52px;grid-template-columns:1fr 1fr}
  .action{font-size:13px}.stop{grid-column:1/3}
- .control-settings{grid-template-columns:1fr}.extruder-grid{grid-template-columns:1fr}.control-main{flex:0 0 220px}.nav{height:58px}
+ .control-settings{grid-template-columns:1fr}.extruder-grid{grid-template-columns:1fr}.extruder-temps{gap:6px}.extruder-temps .temp{height:72px}.control-main{flex:0 0 220px}.nav{height:58px}
 }
 @media(max-width:430px){.subtitle{display:none}.top-sensors{gap:2px}.top-chip{padding:4px 4px;font-size:7px}.top{gap:4px}.status{min-width:45px;font-size:8px}.top-button{width:28px;height:28px}}
 @media(max-width:380px){
@@ -562,8 +562,17 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
 </section>
 
 <section class="extruder-page" id="extruderPage">
-  <div class="extruder-head"><div><h2>Extruder</h2><p>Filament movement, flow, and pressure advance</p></div><button class="files-tool temp-click" data-heater="nozzle">NOZZLE TEMP</button></div>
+  <div class="extruder-head"><div><h2>Extruder</h2><p>Filament movement, flow, and pressure advance</p></div></div>
+  <section class="extruder-temps" aria-label="Hotend and bed temperatures">
+    <button class="card temp nozzle temp-click" data-heater="nozzle" aria-label="Set hotend temperature"><h3>HOTEND</h3><div class="value"><span id="extruderHotend">--</span><span class="unit"> °C</span></div><div class="target">target <span id="extruderHotendTarget">--</span> °C</div><div class="bar"><i id="extruderHotendBar"></i></div></button>
+    <button class="card temp bed temp-click" data-heater="bed" aria-label="Set bed temperature"><h3>BED</h3><div class="value"><span id="extruderBed">--</span><span class="unit"> °C</span></div><div class="target">target <span id="extruderBedTarget">--</span> °C</div><div class="bar"><i id="extruderBedBar"></i></div></button>
+  </section>
   <div class="extruder-grid">
+    <section class="card advanced-card"><h3>FILAMENT MOVEMENT</h3><p>Available while the printer is idle. Heat the nozzle first.</p>
+      <label>Distance (mm)<input id="filamentDistance" type="number" min="1" max="100" step="1" value="10" inputmode="decimal" enterkeyhint="done"></label>
+      <div class="extruder-direct-controls"><button data-extrusion-action="extrude" id="extrudeDirectBtn" disabled>EXTRUDE</button><button data-extrusion-action="retract" id="retractDirectBtn" disabled>RETRACT</button></div>
+      <div class="extruder-ready-note" id="extruderReadyNote">Nozzle must be above 170 °C to move filament.</div>
+    </section>
     <section class="card advanced-card"><h3>PRESSURE ADVANCE</h3><p>Runtime tuning for the active print session.</p>
       <label>Advance (mm)<input id="paValue" type="number" min="0" max="2" step="0.005" inputmode="decimal" placeholder="e.g. 0.04"></label>
       <label>Smooth time (s)<input id="paSmooth" type="number" min="0.01" max="0.2" step="0.001" inputmode="decimal" placeholder="Klipper default"></label>
@@ -572,12 +581,6 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
     <section class="card advanced-card"><h3>FLOW MULTIPLIER</h3><p>Set the extrusion multiplier for the current job.</p>
       <div class="field-inline"><input id="flowValue" type="number" min="50" max="150" step="1" value="100" inputmode="decimal"><span>%</span></div>
       <div class="advanced-buttons"><button id="flowDown">− 5%</button><button id="flowSet">SET FLOW</button><button id="flowUp">+ 5%</button></div>
-    </section>
-    <section class="card advanced-card"><h3>FILAMENT MOVEMENT</h3><p>Available while the printer is idle. Heat the nozzle first.</p>
-      <label>Distance<input id="filamentDistance" type="number" min="1" max="100" step="1" value="10" inputmode="decimal"></label>
-      <div class="advanced-buttons"><button id="loadFilament">LOAD</button><button class="danger-control" id="unloadFilament">UNLOAD</button></div>
-      <div class="extruder-direct-controls"><button data-extrusion-action="extrude" id="extrudeDirectBtn" disabled>EXTRUDE 10</button><button data-extrusion-action="retract" id="retractDirectBtn" disabled>RETRACT 10</button></div>
-      <div class="extruder-ready-note" id="extruderReadyNote">Nozzle must be above 170 °C to move filament.</div>
     </section>
     <section class="card advanced-card extruder-readout"><h3>EXTRUDER STATUS</h3><div>Nozzle <b><span id="extruderTemp">--</span> °C</b></div><div>Target <b><span id="extruderTarget">--</span> °C</b></div><div>Flow factor <b><span id="extruderFlow">100</span>%</b></div><div>Extrusion min temp <b><span id="minExtrudeTemp">--</span> °C</b></div></section>
   </div>
@@ -708,11 +711,11 @@ function findObject(preferred,matcher){
   return capabilities.objects.find(matcher)||null;
 }
 function setCapabilityCard(id,enabled){
-  const el=document.querySelector(`[data-heater="${id}"]`);
-  if(!el)return;
-  el.classList.toggle("disabled",!enabled);
-  el.disabled=!enabled;
-  el.title=enabled?"Open controls":"Not available in current Klipper configuration";
+  document.querySelectorAll(`[data-heater="${id}"]`).forEach(el=>{
+    el.classList.toggle("disabled",!enabled);
+    el.disabled=!enabled;
+    el.title=enabled?"Open controls":"Not available in current Klipper configuration";
+  });
 }
 function manualAllowed(){
   return connected && ["idle","standby","complete","cancelled","error"].includes(currentState);
@@ -801,8 +804,10 @@ async function detectCapabilities(){
     }
 
     applyCapabilities();renderLedOptions();updateExtruderPanel();renderDiagnostics();renderMacros();
+    return true;
   }catch(e){
-    toast("Capability detection failed");renderDiagnostics();
+    renderDiagnostics();
+    return false;
   }
 }
 
@@ -862,8 +867,14 @@ async function updateJobThumbnail(filename){
 
 function updateStatus(s){
   if(!s)return;
-  if(s.extruder){currentExtruderTemp=Number(s.extruder.temperature);$("nozzle").textContent=fmtTemp(s.extruder.temperature);$("nozzleTarget").textContent=fmtTemp(s.extruder.target);$("nozzleBar").style.width=clamp((s.extruder.temperature/300)*100,0,100)+"%";$("extruderTemp").textContent=fmtTemp(s.extruder.temperature);$("extruderTarget").textContent=fmtTemp(s.extruder.target);updateExtruderActionButtons()}
-  if(s.heater_bed){$("bed").textContent=fmtTemp(s.heater_bed.temperature);$("bedTarget").textContent=fmtTemp(s.heater_bed.target);$("bedBar").style.width=clamp((s.heater_bed.temperature/120)*100,0,100)+"%"}
+  if(s.extruder){
+    currentExtruderTemp=Number(s.extruder.temperature);
+    [["nozzle","nozzleTarget","nozzleBar"],["extruderHotend","extruderHotendTarget","extruderHotendBar"]].forEach(([tempId,targetId,barId])=>{
+      $(tempId).textContent=fmtTemp(s.extruder.temperature);$(targetId).textContent=fmtTemp(s.extruder.target);$(barId).style.width=clamp((s.extruder.temperature/300)*100,0,100)+"%";
+    });
+    $("extruderTemp").textContent=fmtTemp(s.extruder.temperature);$("extruderTarget").textContent=fmtTemp(s.extruder.target);updateExtruderActionButtons();
+  }
+  if(s.heater_bed){[["bed","bedTarget","bedBar"],["extruderBed","extruderBedTarget","extruderBedBar"]].forEach(([tempId,targetId,barId])=>{$(tempId).textContent=fmtTemp(s.heater_bed.temperature);$(targetId).textContent=fmtTemp(s.heater_bed.target);$(barId).style.width=clamp((s.heater_bed.temperature/120)*100,0,100)+"%"})}
   const chamberKey=capabilities.chamberSensorObject||capabilities.chamberHeaterObject||
     Object.keys(s).find(k=>/chamber/i.test(k)&&s[k]&&typeof s[k].temperature==="number");
   if(chamberKey&&s[chamberKey]){
@@ -958,8 +969,10 @@ async function connect(){
   try{
     ws=new WebSocket(WS);
     ws.onopen=async()=>{
+      clearTimeout(stateRefreshTimer);
+      clearPrinterReadouts();
       setConn(true);
-      await detectCapabilities();
+      await refreshPrinterState();
     };
     ws.onmessage=e=>{
       try{
@@ -969,12 +982,41 @@ async function connect(){
           mergeStatus(s);updateStatus(objects);
         }else if(m.method==="notify_gcode_response"){
           appendConsoleLine(String(m.params?.[0]||""),"console-response");
+        }else if(m.method==="notify_klippy_disconnected"){
+          clearPrinterReadouts();$("status").textContent="KLIPPY OFFLINE";
+          stateRefreshTimer=setTimeout(refreshPrinterState,2000);
+        }else if(m.method==="notify_klippy_ready"){
+          refreshPrinterState();
         }
       }catch{}
     };
-    ws.onclose=()=>{setConn(false);applyCapabilities();reconnectTimer=setTimeout(connect,2500)};
+    ws.onclose=()=>{clearTimeout(stateRefreshTimer);setConn(false);applyCapabilities();reconnectTimer=setTimeout(connect,2500)};
     ws.onerror=()=>{try{ws.close()}catch{}};
   }catch(e){setConn(false);reconnectTimer=setTimeout(connect,2500)}
+}
+let stateRefreshTimer=null;
+function clearPrinterReadouts(){
+  objects={};currentState="offline";currentExtruderTemp=NaN;
+  ["nozzle","nozzleTarget","extruderHotend","extruderHotendTarget","extruderTemp","extruderTarget","bed","bedTarget","extruderBed","extruderBedTarget"].forEach(id=>$(id).textContent="--");
+  ["nozzleBar","extruderHotendBar","bedBar","extruderBedBar"].forEach(id=>$(id).style.width="0%");
+  updateExtruderActionButtons();updatePrintControls();
+}
+async function refreshPrinterState(){
+  clearTimeout(stateRefreshTimer);
+  if(!connected||ws?.readyState!==WebSocket.OPEN)return;
+  try{
+    serverInfo=await rpc("server.info");
+    if(serverInfo.klippy_state!=="ready"){
+      currentState="offline";
+      $("status").textContent=serverInfo.klippy_state?serverInfo.klippy_state.toUpperCase():"STARTING";
+      $("status").className="status idle";updatePrintControls();updateExtruderActionButtons();
+      stateRefreshTimer=setTimeout(refreshPrinterState,2000);
+      return;
+    }
+    if(!await detectCapabilities())stateRefreshTimer=setTimeout(refreshPrinterState,2000);
+  }catch{
+    stateRefreshTimer=setTimeout(refreshPrinterState,2500);
+  }
 }
 async function command(method){
   try{await rpc(method);toast(method==="printer.print.pause"?"Print paused":method==="printer.print.resume"?"Print resumed":"Print stopped")}
@@ -1004,7 +1046,7 @@ function showSetting(key){
     `${$(key).textContent} °C`;
   $("tempTargetCurrent").textContent=fan?"—":`${Number.isFinite(current)?current:0} °C`;
   $("tempInputLabel").textContent=fan?"Fan speed (%)":"Target temperature (°C)";
-  $("tempInput").max=String(option.max);
+  $("tempInput").max=String(option.max);$("tempInput").setAttribute("enterkeyhint","done");
   $("tempInput").value=String(Math.round(Number.isFinite(current)?current:0));
   $("tempInput").style.display=fan?"none":"block";
   $("tempInputLabel").style.display=fan?"none":"block";
@@ -1037,6 +1079,14 @@ $("fanRange").oninput=()=>$("tempInput").value=$("fanRange").value;
 $("tempInput").oninput=()=>{if(activeSetting==="fan")$("fanRange").value=$("tempInput").value};
 $("tempApply").onclick=()=>applySetting(activeSetting==="fan"?$("fanRange").value:$("tempInput").value);
 $("tempOff").onclick=()=>applySetting(0);
+$("tempInput").onkeydown=e=>{
+  if(e.key==="Enter"){
+    e.preventDefault();
+    const value=e.currentTarget.value;
+    e.currentTarget.blur();
+    applySetting(value);
+  }
+};
 
 let jogStep=1;
 function selectStep(step){
@@ -1069,19 +1119,14 @@ document.querySelectorAll("[data-extrude]").forEach(b=>b.onclick=async()=>{
 });
 
 function updateExtruderActionButtons(){
-  const ready=Number.isFinite(currentExtruderTemp)&&currentExtruderTemp>170;
+  const minimum=Number($("minExtrudeTemp")?.textContent)||170;
+  const ready=Number.isFinite(currentExtruderTemp)&&currentExtruderTemp>minimum;
   document.querySelectorAll("[data-extrusion-action]").forEach(button=>button.disabled=!manualAllowed()||!ready);
   const note=$("extruderReadyNote");
-  if(note)note.textContent=ready?"Nozzle is hot enough for filament movement.":"Nozzle must be above 170 °C to move filament.";
+  if(note)note.textContent=ready?"Nozzle is hot enough for filament movement.":`Nozzle must be above ${minimum} °C to move filament.`;
 }
 document.querySelectorAll("[data-extrusion-action]").forEach(button=>button.onclick=async()=>{
-  if(!manualAllowed()){toast("Extrusion locked while printer is active");return}
-  if(!(Number.isFinite(currentExtruderTemp)&&currentExtruderTemp>170)){toast("Heat nozzle above 170 °C first");return}
-  const amount=button.dataset.extrusionAction==="extrude"?10:-10;
-  try{
-    await rpc("printer.gcode.script",{script:`SAVE_GCODE_STATE NAME=HMI_EXTRUDE_STATE\nM83\nG1 E${amount} F300\nRESTORE_GCODE_STATE NAME=HMI_EXTRUDE_STATE MOVE=0`});
-    toast(amount>0?`Extruded ${amount} mm`:`Retracted ${Math.abs(amount)} mm`);
-  }catch(e){toast("Extrusion failed: "+e.message)}
+  moveFilament(button.dataset.extrusionAction==="extrude"?1:-1);
 });
 
 async function homeAll(){
@@ -1220,8 +1265,6 @@ async function moveFilament(sign){
   try{await rpc("printer.gcode.script",{script:"SAVE_GCODE_STATE NAME=HMI_FILAMENT\nM83\nG1 E"+(sign*mm)+" F300\nRESTORE_GCODE_STATE NAME=HMI_FILAMENT MOVE=0"});toast(sign>0?"Loaded "+mm+" mm":"Unloaded "+mm+" mm")}
   catch(e){toast("Filament move failed: "+e.message)}
 }
-$("loadFilament").onclick=()=>moveFilament(1);
-$("unloadFilament").onclick=()=>moveFilament(-1);
 $("fullscreenBtn").onclick=async()=>{
   try{
     if(document.fullscreenElement){await document.exitFullscreen();return}
