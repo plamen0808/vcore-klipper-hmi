@@ -59,6 +59,7 @@ main{flex:1;min-height:0;padding:12px 18px;display:flex;flex-direction:column;ga
 .nav{height:84px;position:sticky;bottom:0;z-index:4;background:var(--bg);display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;flex:none}.nav button{background:#0c151e;border:1px solid var(--line);border-radius:14px;color:#9eacb9;font-size:12px;font-weight:700;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px}.nav button.active{border-color:#168ff0;color:#40aeff;background:#092039}.nav .ico{font-size:21px}
 .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);opacity:0;background:#17222d;border:1px solid #2b3b49;padding:12px 18px;border-radius:10px;transition:.2s;pointer-events:none;z-index:20}.toast.show{opacity:1;transform:translateX(-50%)}
 .modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:10}.modal.show{display:flex}.modalbox{width:min(500px,90vw);background:#101923;border:1px solid #30404e;border-radius:18px;padding:24px}.modalbox h2{margin:0 0 10px}.modalbox p{color:#a9b6c1}.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}.modal-actions button{padding:12px 18px;border-radius:10px;background:#24313d}.modal-actions .danger{background:#c92f2a}
+.system-modal{z-index:25}.system-box{width:min(520px,94vw);max-height:88vh;overflow:auto;padding:18px}.system-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.system-head h2{margin:0}.system-head button{width:40px;height:40px;border-radius:10px;background:#24313d}.system-message{margin:8px 0 14px;font-size:12px;line-height:1.45}.system-group{padding:10px 0;border-top:1px solid var(--line)}.system-group h3{margin:0 0 8px;color:#9eacb9;font-size:10px;letter-spacing:1px}.system-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.system-actions button{min-height:42px;padding:8px;border:1px solid #30404e;border-radius:9px;background:#172a39;font-size:11px;font-weight:800}.system-actions button.danger{background:#542522;border-color:#8b3831;color:#ffb4ad}
 .temp-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;background:#000b;z-index:30}
 .temp-modal.show{display:flex}
 .temp-box{width:min(460px,94vw);max-height:92vh;overflow:auto;padding:22px;background:#101923;border:1px solid #30404e;border-radius:18px;box-shadow:0 20px 70px #0009}
@@ -398,6 +399,14 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
 .extruder-direct-controls button[data-extrusion-action="retract"]{background:#3a2227;border-color:#684047}
 .extruder-direct-controls button:disabled{opacity:.4;filter:saturate(.5)}
 .extruder-ready-note{font-size:10px;color:var(--muted);margin-top:6px}
+.title-line{display:flex;align-items:center;gap:6px}.title-alert{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none;background:#542522;border:1px solid #8b3831;color:#ffd0ca;font-size:14px;font-weight:900;line-height:1}
+.top-power{background:#163522;border-color:#28583b;font-size:19px}
+.emergency-stop{grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;padding:6px;border:1px solid #a8332c;border-radius:13px;background:linear-gradient(160deg,#a52b25,#641714);color:#fff;text-align:center;box-shadow:0 6px 18px #0005}.emergency-stop b{font-size:clamp(20px,3vh,30px);line-height:1}.emergency-stop small{font-size:9px;font-weight:900;line-height:1.1}.emergency-stop:active{filter:brightness(1.2);transform:scale(.98)}
+.modal#confirm{z-index:40}
+@media(min-width:901px){.workspace{grid-template-columns:58px minmax(0,1.25fr) minmax(245px,1fr)}.emergency-stop{grid-column:1}.job{grid-column:2}.actions{grid-column:3}}
+@media(max-width:900px) and (orientation:landscape){.workspace{grid-template-columns:44px minmax(0,1.25fr) minmax(145px,.72fr)!important}.emergency-stop{grid-column:1;grid-row:1}.job{grid-column:2;grid-row:1}.actions{grid-column:3;grid-row:1}}
+@media(max-width:900px) and (orientation:portrait) and (min-width:701px){.workspace{grid-template-columns:50px minmax(0,1fr)!important;grid-template-rows:auto auto}.emergency-stop{grid-column:1;grid-row:1}.job{grid-column:2;grid-row:1}.actions{grid-column:1/-1;grid-row:2}}
+@media(max-width:700px) and (orientation:portrait){.workspace{grid-template-columns:40px minmax(0,1fr)!important;grid-template-rows:auto auto}.emergency-stop{grid-column:1;grid-row:1}.job{grid-column:2;grid-row:1;grid-template-columns:minmax(48px,22%) minmax(0,1fr)}.actions{grid-column:1/-1;grid-row:2}}
 @media(max-width:430px){.macro-head-actions{gap:4px}.macro-head-actions .files-tool{font-size:8px;padding:8px}.macro-picker-list{grid-template-columns:1fr 1fr}}
 
 /* Keep the main workspace sized to the space above the fixed tab bar. */
@@ -440,7 +449,7 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
 <div class="app">
 <header class="top">
   <div class="logo">V</div>
-  <div><div class="title">V-CORE</div><div class="subtitle">KLIPPER · MOONRAKER</div></div>
+  <div><div class="title-line"><div class="title">V-CORE</div><button class="title-alert" id="recoveryOpenBtn" aria-label="Open printer recovery menu" title="Emergency stop and recovery">!</button></div><div class="subtitle">KLIPPER · MOONRAKER</div></div>
   <div class="top-spacer"></div>
   <div class="top-sensors">
     <span class="top-chip" id="controllerFanChip">CTRL --%</span>
@@ -451,6 +460,7 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
   <button class="top-button fullscreen-button" id="fullscreenBtn" aria-label="Toggle full screen">⛶</button>
   <div class="connection"><span class="dot"></span><span id="connText">CONNECTING</span></div>
   <div class="status idle" id="status">OFFLINE</div>
+  <button class="top-button top-power" id="powerMenuBtn" aria-label="Power and service controls" title="Power and service controls">⏻</button>
 </header>
 
 <main>
@@ -464,6 +474,7 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
 </section>
 
 <section class="workspace">
+  <button class="emergency-stop" id="emergencyStopBtn" aria-label="Emergency stop printer" title="Immediately stop the printer"><b>!</b><small>E-STOP</small></button>
   <article class="card job">
     <div class="preview" id="preview"><div class="placeholder">NO ACTIVE PRINT</div></div>
     <div class="jobinfo">
@@ -661,6 +672,42 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
     <h2>Stop print?</h2>
     <p>This will cancel the current print. The printer will not automatically resume it.</p>
     <div class="modal-actions"><button id="cancelConfirm">KEEP PRINTING</button><button class="danger" id="confirmStop">STOP PRINT</button></div>
+  </div>
+</div>
+<div class="modal system-modal" id="recoveryModal" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle">
+  <div class="modalbox system-box">
+    <div class="system-head"><h2 id="recoveryTitle">Printer recovery</h2><button id="recoveryCloseBtn" aria-label="Close recovery menu">✕</button></div>
+    <p class="system-message" id="recoveryMessage">Use these controls to restart Klipper or recover the printer after a shutdown.</p>
+    <div class="system-group"><h3>KLIPPER CONTROL</h3><div class="system-actions">
+      <button data-system-method="printer.restart" data-system-label="Restart Klipper">RESTART KLIPPER</button>
+      <button data-system-method="printer.firmware_restart" data-system-label="Firmware restart">FIRMWARE RESTART</button>
+    </div></div>
+    <div class="system-group"><h3>SERVICE CONTROL</h3><div class="system-actions">
+      <button data-system-method="machine.services.restart" data-service="klipper" data-system-label="Restart Klipper service">RESTART KLIPPER SERVICE</button>
+      <button data-system-method="machine.services.restart" data-service="moonraker" data-system-label="Restart Moonraker">RESTART MOONRAKER</button>
+    </div></div>
+    <div class="system-group"><h3>HOST CONTROL</h3><div class="system-actions">
+      <button data-system-method="machine.reboot" data-system-label="Reboot host">REBOOT HOST</button>
+      <button class="danger" data-system-method="machine.shutdown" data-system-label="Shut down host">SHUT DOWN HOST</button>
+    </div></div>
+  </div>
+</div>
+<div class="modal system-modal" id="powerModal" role="dialog" aria-modal="true" aria-labelledby="powerTitle">
+  <div class="modalbox system-box">
+    <div class="system-head"><h2 id="powerTitle">Power and service control</h2><button id="powerCloseBtn" aria-label="Close power menu">✕</button></div>
+    <p class="system-message">Restart printer software, restart a service, reboot the Raspberry Pi, or shut it down.</p>
+    <div class="system-group"><h3>KLIPPER CONTROL</h3><div class="system-actions">
+      <button data-system-method="printer.restart" data-system-label="Restart Klipper">RESTART KLIPPER</button>
+      <button data-system-method="printer.firmware_restart" data-system-label="Firmware restart">FIRMWARE RESTART</button>
+    </div></div>
+    <div class="system-group"><h3>SERVICE CONTROL</h3><div class="system-actions">
+      <button data-system-method="machine.services.restart" data-service="klipper" data-system-label="Restart Klipper service">RESTART KLIPPER SERVICE</button>
+      <button data-system-method="machine.services.restart" data-service="moonraker" data-system-label="Restart Moonraker">RESTART MOONRAKER</button>
+    </div></div>
+    <div class="system-group"><h3>HOST CONTROL</h3><div class="system-actions">
+      <button data-system-method="machine.reboot" data-system-label="Reboot host">REBOOT HOST</button>
+      <button class="danger" data-system-method="machine.shutdown" data-system-label="Shut down host">SHUT DOWN HOST</button>
+    </div></div>
   </div>
 </div>
 
@@ -1596,6 +1643,38 @@ $("filesUp").onclick=()=>{
   loadFiles();
 };
 
+function openRecoveryMenu(message="Use these controls to restart Klipper or recover the printer after a shutdown."){
+  $("recoveryMessage").textContent=message;
+  $("recoveryModal").classList.add("show");
+}
+$("recoveryOpenBtn").onclick=()=>openRecoveryMenu();
+$("emergencyStopBtn").onclick=async()=>{
+  openRecoveryMenu(connected?"Emergency stop sent. Choose a restart option below to recover the printer.":"Moonraker is offline; the emergency stop command could not be sent. These recovery controls may still work after reconnection.");
+  if(!connected){toast("Moonraker is offline; emergency stop was not sent");return}
+  try{await rpc("printer.emergency_stop");toast("Emergency stop sent")}
+  catch(error){$("recoveryMessage").textContent="Emergency stop request failed: "+error.message;toast("Emergency stop failed")}
+};
+$("powerMenuBtn").onclick=()=>$("powerModal").classList.add("show");
+$("recoveryCloseBtn").onclick=()=>$("recoveryModal").classList.remove("show");
+$("powerCloseBtn").onclick=()=>$("powerModal").classList.remove("show");
+$("recoveryModal").onclick=e=>{if(e.target===$("recoveryModal"))$("recoveryModal").classList.remove("show")};
+$("powerModal").onclick=e=>{if(e.target===$("powerModal"))$("powerModal").classList.remove("show")};
+const systemActionHelp={
+  "printer.restart":"Restart Klipper and reload the printer configuration. Any active print will stop.",
+  "printer.firmware_restart":"Restart Klipper and reset connected MCUs. Any active print will stop.",
+  "machine.services.restart":"Restart the selected Linux service. Printer control may be unavailable briefly.",
+  "machine.reboot":"Reboot the Raspberry Pi. The HMI will disconnect until the host starts again.",
+  "machine.shutdown":"Shut down the Raspberry Pi. It will not reconnect until the host is powered on again."
+};
+document.querySelectorAll("[data-system-method]").forEach(button=>button.onclick=()=>{
+  const method=button.dataset.systemMethod,label=button.dataset.systemLabel||"Run system action";
+  const params=button.dataset.service?{service:button.dataset.service}:{};
+  showActionConfirm(label+"?",systemActionHelp[method]||"This will interrupt printer services.",label.toUpperCase(),async()=>{
+    $("recoveryModal").classList.remove("show");$("powerModal").classList.remove("show");
+    try{await rpc(method,params);toast(label+" requested")}
+    catch(error){toast(label+" failed: "+error.message)}
+  },true,"CANCEL");
+});
 $("printerDiagBtn").onclick=()=>{$("diagModal").classList.add("show");renderDiagnostics()};
 $("diagClose").onclick=()=>$("diagModal").classList.remove("show");
 $("diagClose2").onclick=()=>$("diagModal").classList.remove("show");
