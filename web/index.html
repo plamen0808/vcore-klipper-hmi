@@ -588,7 +588,7 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
 
 <section class="console-page" id="consolePage">
   <div class="console-head"><div><h2>G-code console</h2><p>Send a Klipper command to the printer.</p></div><button class="files-tool" id="consoleClear">CLEAR</button></div>
-  <form class="console-entry" id="consoleForm"><input id="consoleInput" autocomplete="off" autocapitalize="characters" placeholder="Enter G-code or a command…"><button type="submit">SEND</button></form>
+  <form class="console-entry" id="consoleForm"><input id="consoleInput" autocomplete="off" autocapitalize="characters" enterkeyhint="send" placeholder="Enter G-code or a command…"><button type="submit">SEND</button></form>
   <div class="console-log" id="consoleLog" aria-live="polite"><div class="console-hint">Console output will appear here.</div></div>
 </section>
 
@@ -1079,14 +1079,29 @@ $("fanRange").oninput=()=>$("tempInput").value=$("fanRange").value;
 $("tempInput").oninput=()=>{if(activeSetting==="fan")$("fanRange").value=$("tempInput").value};
 $("tempApply").onclick=()=>applySetting(activeSetting==="fan"?$("fanRange").value:$("tempInput").value);
 $("tempOff").onclick=()=>applySetting(0);
-$("tempInput").onkeydown=e=>{
-  if(e.key==="Enter"){
+function bindEnterAction(id,action=()=>{}){
+  const field=$(id);if(!field)return;
+  field.setAttribute("enterkeyhint","done");
+  field.addEventListener("keydown",e=>{
+    if(e.key!=="Enter"||e.isComposing)return;
     e.preventDefault();
-    const value=e.currentTarget.value;
-    e.currentTarget.blur();
-    applySetting(value);
-  }
-};
+    field.blur();
+    action();
+  });
+}
+bindEnterAction("tempInput",()=>applySetting(activeSetting==="fan"?$("fanRange").value:$("tempInput").value));
+bindEnterAction("machineVelocity",()=>$("applyMotionLimits").click());
+bindEnterAction("squareCornerVelocity",()=>$("applyMotionLimits").click());
+bindEnterAction("machineAccel",()=>$("applyMotionLimits").click());
+bindEnterAction("minimumCruiseRatio",()=>$("applyMotionLimits").click());
+bindEnterAction("filamentDistance");
+bindEnterAction("fanRange",()=>applySetting($("fanRange").value));
+bindEnterAction("paValue",()=>$("applyPressureAdvance").click());
+bindEnterAction("paSmooth",()=>$("applyPressureAdvance").click());
+bindEnterAction("flowValue",()=>setFlow());
+bindEnterAction("ledColor",()=>$("applyLed").click());
+bindEnterAction("ledBrightness",()=>$("applyLed").click());
+bindEnterAction("macroSearch");
 
 let jogStep=1;
 function selectStep(step){
@@ -1282,6 +1297,7 @@ function appendConsoleLine(value,className=""){
 }
 $("consoleForm").onsubmit=async e=>{
   e.preventDefault();
+  $("consoleInput").blur();
   const script=$("consoleInput").value.trim();
   if(!script)return;
   if(!connected){toast("Moonraker is offline");return}
