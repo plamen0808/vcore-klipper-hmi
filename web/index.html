@@ -183,7 +183,7 @@ button:disabled{opacity:.38;filter:saturate(.2);cursor:not-allowed}
 
 .console-page,.macros-page,.camera-page{display:none;flex:1;min-height:0;flex-direction:column;gap:10px}
 .console-page.active,.macros-page.active,.camera-page.active{display:flex}
-.camera-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}.camera-head h2{margin:0;font-size:20px}.camera-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.camera-tools{display:flex;align-items:center;gap:7px}.camera-tools select{max-width:min(44vw,240px);min-width:90px;padding:9px;border:1px solid #30404e;border-radius:9px;background:#0c151e;color:var(--text)}.camera-stage{position:relative;display:flex;align-items:center;justify-content:center;flex:1;min-height:180px;overflow:hidden;background:#050a0e;border:1px solid var(--line);border-radius:12px}.camera-stage img{display:block;width:100%;height:100%;object-fit:contain}.camera-message{padding:20px;color:var(--muted);text-align:center;line-height:1.5}.camera-message b{display:block;margin-bottom:5px;color:#dce6ef}
+.camera-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}.camera-head h2{margin:0;font-size:20px}.camera-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.camera-tools{display:flex;align-items:center;gap:7px}.camera-tools select{max-width:min(44vw,240px);min-width:90px;padding:9px;border:1px solid #30404e;border-radius:9px;background:#0c151e;color:var(--text)}.camera-stage{position:relative;display:flex;align-items:center;justify-content:center;flex:1;min-height:180px;overflow:hidden;background:#050a0e;border:1px solid var(--line);border-radius:12px;touch-action:none}.camera-zoom-layer{width:100%;height:100%;display:flex;align-items:center;justify-content:center;transform-origin:center center;will-change:transform}.camera-stage img{display:block;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}.camera-message{padding:20px;color:var(--muted);text-align:center;line-height:1.5}.camera-message b{display:block;margin-bottom:5px;color:#dce6ef}
 .console-head,.macros-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}
 .console-head h2,.macros-head h2{margin:0;font-size:20px}.console-head p,.macros-head p{margin:4px 0 0;color:var(--muted);font-size:12px}
 .console-log{flex:1;min-height:160px;overflow:auto;padding:12px;background:#050a0e;border:1px solid var(--line);border-radius:12px;font:13px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -1262,13 +1262,48 @@ function showPage(page){
 document.querySelectorAll(".nav button[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 
 let cameraCache=[];
+let cameraScale=1,cameraPanX=0,cameraPanY=0,cameraTouch=null;
+function resetCameraZoom(){cameraScale=1;cameraPanX=0;cameraPanY=0;cameraTouch=null;updateCameraTransform()}
+function updateCameraTransform(){
+  const layer=$("cameraZoomLayer");
+  if(layer)layer.style.transform=`translate3d(${cameraPanX}px,${cameraPanY}px,0) scale(${cameraScale})`;
+}
+function touchDistance(touches){
+  const dx=touches[0].clientX-touches[1].clientX,dy=touches[0].clientY-touches[1].clientY;
+  return Math.hypot(dx,dy);
+}
+$("cameraStage").addEventListener("touchstart",event=>{
+  if(event.touches.length===2){
+    event.preventDefault();
+    cameraTouch={mode:"pinch",distance:touchDistance(event.touches),scale:cameraScale};
+  }else if(event.touches.length===1&&cameraScale>1){
+    event.preventDefault();
+    cameraTouch={mode:"pan",x:event.touches[0].clientX,y:event.touches[0].clientY,panX:cameraPanX,panY:cameraPanY};
+  }else cameraTouch=null;
+},{passive:false});
+$("cameraStage").addEventListener("touchmove",event=>{
+  if(event.touches.length===2&&cameraTouch?.mode==="pinch"){
+    event.preventDefault();
+    cameraScale=clamp(cameraTouch.scale*touchDistance(event.touches)/Math.max(1,cameraTouch.distance),1,5);
+    if(cameraScale===1){cameraPanX=0;cameraPanY=0}
+    updateCameraTransform();
+  }else if(event.touches.length===1&&cameraTouch?.mode==="pan"){
+    event.preventDefault();
+    cameraPanX=cameraTouch.panX+event.touches[0].clientX-cameraTouch.x;
+    cameraPanY=cameraTouch.panY+event.touches[0].clientY-cameraTouch.y;
+    updateCameraTransform();
+  }
+},{passive:false});
+$("cameraStage").addEventListener("touchend",()=>{cameraTouch=null},{passive:true});
 function cameraMessage(title,message){
+  resetCameraZoom();
   const box=document.createElement("div");box.className="camera-message";
   const heading=document.createElement("b");heading.textContent=title;
   const detail=document.createElement("span");detail.textContent=message;
   box.append(heading,detail);$("cameraStage").replaceChildren(box);
 }
 function renderSelectedCamera(){
+  resetCameraZoom();
   const camera=cameraCache.find(item=>(item.uid||item.name)===$("cameraSelect").value)||cameraCache[0];
   if(!camera){cameraMessage("No camera selected","Configure a webcam in Moonraker, then refresh this page.");return}
   $("cameraDescription").textContent=camera.location?`${camera.name} · ${camera.location}`:camera.name;
@@ -1280,7 +1315,8 @@ function renderSelectedCamera(){
   };
   const base=`${location.protocol}//${location.hostname}/`;
   image.src=new URL(camera.stream_url,base).href;
-  $("cameraStage").replaceChildren(image);
+  const layer=document.createElement("div");layer.className="camera-zoom-layer";layer.id="cameraZoomLayer";
+  layer.appendChild(image);$("cameraStage").replaceChildren(layer);
 }
 async function loadCameras(){
   const select=$("cameraSelect");
