@@ -492,7 +492,7 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
       <div class="divider"></div>
       <div class="details">
         <div class="detail"><b id="speed">--</b><span>Speed</span></div>
-        <div class="detail"><b id="flow">--</b><span>Flow</span></div>
+        <div class="detail"><b id="flow">--</b><span>Flow (mm³/s)</span></div>
         <div class="detail"><b id="zheight">--</b><span>Z Height</span></div>
       </div>
       <div class="job-operation"><span>Current operation</span><b id="operation">Waiting for printer</b></div>
@@ -983,6 +983,14 @@ function updateStatus(s){
     const z=Array.isArray(s.motion_report.live_position)?s.motion_report.live_position[2]:null;
     if(Number.isFinite(z))$("zheight").textContent=z.toFixed(1)+" mm";
     const vel=s.motion_report.live_velocity;if(Number.isFinite(vel))$("speed").textContent=Math.round(vel)+" mm/s";
+    const extruderVelocity=Number(s.motion_report.live_extruder_velocity);
+    const extruderSettings=s.configfile?.settings?.extruder||objects.configfile?.settings?.extruder;
+    const rawDiameter=extruderSettings?.filament_diameter??s.configfile?.config?.extruder?.filament_diameter??objects.configfile?.config?.extruder?.filament_diameter;
+    const filamentDiameter=Number(rawDiameter);
+    if(Number.isFinite(extruderVelocity)&&Number.isFinite(filamentDiameter)&&filamentDiameter>0){
+      const volumetricFlow=Math.abs(extruderVelocity)*Math.PI*Math.pow(filamentDiameter/2,2);
+      $("flow").textContent=volumetricFlow.toFixed(1);
+    }else $("flow").textContent="--";
   }
   if(s.toolhead){
     [["max_velocity","machineVelocity"],["square_corner_velocity","squareCornerVelocity"],["max_accel","machineAccel"],["minimum_cruise_ratio","minimumCruiseRatio"]].forEach(([key,id])=>{
@@ -993,7 +1001,7 @@ function updateStatus(s){
     const sf=s.gcode_move.speed_factor,lf=s.gcode_move.extrude_factor;
     if(Number.isFinite(sf))$("speed").textContent=Math.round(sf*100)+"%";
     if(Number.isFinite(lf)){
-      $("flow").textContent=Math.round(lf*100)+"%";$("extruderFlow").textContent=Math.round(lf*100);
+      $("extruderFlow").textContent=Math.round(lf*100);
       if(document.activeElement!==$("flowValue"))$("flowValue").value=Math.round(lf*100);
     }
   }
@@ -1060,7 +1068,7 @@ async function connect(){
 let stateRefreshTimer=null;
 function clearPrinterReadouts(){
   objects={};currentState="offline";currentExtruderTemp=NaN;
-  ["nozzle","nozzleTarget","extruderHotend","extruderHotendTarget","extruderTemp","extruderTarget","bed","bedTarget","extruderBed","extruderBedTarget"].forEach(id=>$(id).textContent="--");
+  ["nozzle","nozzleTarget","extruderHotend","extruderHotendTarget","extruderTemp","extruderTarget","bed","bedTarget","extruderBed","extruderBedTarget","flow"].forEach(id=>$(id).textContent="--");
   ["nozzleBar","extruderHotendBar","bedBar","extruderBedBar"].forEach(id=>$(id).style.width="0%");
   updateExtruderActionButtons();updatePrintControls();
 }
