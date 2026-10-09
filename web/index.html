@@ -223,6 +223,7 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
 .nav button{border-radius:10px;font-size:clamp(7px,1vw,9px);gap:2px}.nav .ico{font-size:17px}
 .control-page{gap:8px}.control-main{flex:0 0 clamp(170px,30vh,260px)}
 .control-settings{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.z-offset-card{grid-column:1/-1;padding:10px 12px}.z-offset-head{display:flex;align-items:center;gap:7px;margin-bottom:8px}.z-offset-head h3{margin:0;color:#c9d4dd;font-size:12px;letter-spacing:.3px}.z-offset-head b{font-size:13px;font-variant-numeric:tabular-nums}.z-offset-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 34px repeat(4,minmax(0,1fr));gap:4px}.z-offset-controls button{min-width:0;min-height:34px;padding:4px 2px;border:1px solid #34393e;border-radius:4px;background:#242629;color:#d3d5d7;font-size:clamp(8px,1vw,12px);font-variant-numeric:tabular-nums;white-space:nowrap}.z-offset-controls button:active{filter:brightness(1.3)}.z-offset-controls .z-offset-save{display:grid;place-items:center;background:#31363a;color:#c8d1d8}.z-offset-save svg{width:16px;height:16px;fill:currentColor}.z-offset-controls button:disabled{opacity:.38;cursor:not-allowed}
 .advanced-card{padding:12px}.advanced-card h3{margin:0 0 6px;font-size:12px;letter-spacing:.6px}
 .advanced-card p,.small-note{margin:0 0 9px;color:var(--muted);font-size:10px;line-height:1.4}
 .motion-fields{display:grid;grid-template-columns:1fr 1fr;gap:7px}
@@ -559,6 +560,20 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
     </aside>
   </div>
   <section class="control-settings">
+    <section class="card z-offset-card" aria-label="Z offset calibration">
+      <div class="z-offset-head"><h3>Z-Offset:</h3><b id="zOffsetValue">--</b></div>
+      <div class="z-offset-controls">
+        <button class="z-offset-step" data-z-adjust="-0.05" aria-label="Adjust Z offset down 0.05 millimeters">−0.05</button>
+        <button class="z-offset-step" data-z-adjust="-0.025" aria-label="Adjust Z offset down 0.025 millimeters">−0.025</button>
+        <button class="z-offset-step" data-z-adjust="-0.01" aria-label="Adjust Z offset down 0.01 millimeters">−0.01</button>
+        <button class="z-offset-step" data-z-adjust="-0.005" aria-label="Adjust Z offset down 0.005 millimeters">−0.005</button>
+        <button class="z-offset-save" id="zOffsetSaveBtn" title="Apply offset and save configuration" aria-label="Save Z offset"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11l4-4 1.4 1.4L11 18l-6.4-6.6L6 10l4 4V3h2ZM4 19h16v2H4z"/></svg></button>
+        <button class="z-offset-step" data-z-adjust="0.005" aria-label="Adjust Z offset up 0.005 millimeters">↑ +0.005</button>
+        <button class="z-offset-step" data-z-adjust="0.01" aria-label="Adjust Z offset up 0.01 millimeters">+0.01</button>
+        <button class="z-offset-step" data-z-adjust="0.025" aria-label="Adjust Z offset up 0.025 millimeters">+0.025</button>
+        <button class="z-offset-step" data-z-adjust="0.05" aria-label="Adjust Z offset up 0.05 millimeters">+0.05</button>
+      </div>
+    </section>
     <section class="card advanced-card motion-settings"><h3>MOTION LIMITS</h3>
       <div class="motion-fields">
         <label>Velocity (mm/s)<input id="machineVelocity" type="number" min="1" max="1000" step="1" inputmode="decimal"></label>
@@ -892,8 +907,27 @@ function setConn(ok){
   $("status").textContent=ok?stateLabel(currentState):"OFFLINE";
   $("status").className="status "+(!ok?"idle":currentState==="printing"?"":"paused");
   updatePrintControls();
+  updateZOffsetControls();
 }
 function stateLabel(s){return ({printing:"PRINTING",paused:"PAUSED",complete:"COMPLETE",error:"ERROR",standby:"READY",cancelled:"CANCELLED",idle:"READY"})[s]||"READY"}
+let currentZOffset=NaN;
+function updateZOffset(gcodeMove){
+  const origin=gcodeMove?.homing_origin;
+  const axisMap=gcodeMove?.axis_map;
+  const zIndex=Array.isArray(axisMap)?axisMap.findIndex(axis=>String(axis).toLowerCase()==="z"):typeof axisMap==="string"?axisMap.toLowerCase().indexOf("z"):2;
+  const raw=Array.isArray(origin)?origin[zIndex>=0?zIndex:2]:origin?.z;
+  const value=Number(raw);
+  currentZOffset=Number.isFinite(value)?value:NaN;
+  $("zOffsetValue").textContent=Number.isFinite(currentZOffset)?currentZOffset.toFixed(3):"--";
+  updateZOffsetControls();
+}
+function updateZOffsetControls(){
+  document.querySelectorAll(".z-offset-step").forEach(button=>button.disabled=!connected);
+  const idle=connected&&["idle","standby","complete","cancelled"].includes(currentState);
+  const hasOffset=Number.isFinite(currentZOffset)&&Math.abs(currentZOffset)>=0.0005;
+  const saveButton=$("zOffsetSaveBtn");
+  if(saveButton)saveButton.disabled=!idle||!hasOffset;
+}
 function setRecoveryAlert(active){
   const button=$("recoveryOpenBtn");
   button.hidden=!active;
@@ -992,6 +1026,7 @@ function updateStatus(s){
       $("flow").textContent=volumetricFlow.toFixed(1);
     }else $("flow").textContent="--";
   }
+  if(s.gcode_move)updateZOffset(s.gcode_move);
   if(s.toolhead){
     [["max_velocity","machineVelocity"],["square_corner_velocity","squareCornerVelocity"],["max_accel","machineAccel"],["minimum_cruise_ratio","minimumCruiseRatio"]].forEach(([key,id])=>{
       const el=$(id);if(el&&Number.isFinite(s.toolhead[key])&&document.activeElement!==el)el.value=s.toolhead[key];
@@ -1068,6 +1103,7 @@ async function connect(){
 let stateRefreshTimer=null;
 function clearPrinterReadouts(){
   objects={};currentState="offline";currentExtruderTemp=NaN;
+  updateZOffset(null);
   ["nozzle","nozzleTarget","extruderHotend","extruderHotendTarget","extruderTemp","extruderTarget","bed","bedTarget","extruderBed","extruderBedTarget","flow"].forEach(id=>$(id).textContent="--");
   ["nozzleBar","extruderHotendBar","bedBar","extruderBedBar"].forEach(id=>$(id).style.width="0%");
   updateExtruderActionButtons();updatePrintControls();
@@ -1199,6 +1235,27 @@ async function jog(axis,dir){
   }catch(e){toast("Jog failed: "+e.message)}
 }
 document.querySelectorAll("[data-jog]").forEach(b=>b.onclick=()=>jog(b.dataset.jog,Number(b.dataset.dir)));
+document.querySelectorAll("[data-z-adjust]").forEach(button=>button.onclick=async()=>{
+  if(!connected){toast("Moonraker is offline");return}
+  const adjustment=Number(button.dataset.zAdjust);
+  try{await rpc("printer.gcode.script",{script:`SET_GCODE_OFFSET Z_ADJUST=${adjustment>0?"+":""}${adjustment} MOVE=1`})}
+  catch(error){toast("Z-offset adjustment failed: "+error.message)}
+});
+$("zOffsetSaveBtn").onclick=()=>{
+  if(!connected){toast("Moonraker is offline");return}
+  if(!["idle","standby","complete","cancelled"].includes(currentState)){toast("Save the Z-offset after the print has stopped");return}
+  const endstopPin=String(objects.configfile?.settings?.stepper_z?.endstop_pin??objects.configfile?.config?.stepper_z?.endstop_pin??"").replace(/\s+/g,"").toLowerCase();
+  if(!endstopPin){toast("Could not identify the Z endstop type; offset was not saved");return}
+  const applyCommand=endstopPin.includes("probe:z_virtual_endstop")?"Z_OFFSET_APPLY_PROBE":"Z_OFFSET_APPLY_ENDSTOP";
+  const target=applyCommand.endsWith("PROBE")?"probe":"Z endstop";
+  showActionConfirm("Save Z-offset?",`Apply the live adjustment to the ${target}, write it to Klipper's config, and restart Klipper? Do this after calibration while the printer is idle.`,"SAVE & RESTART",async()=>{
+    try{await rpc("printer.gcode.script",{script:`${applyCommand}\nSAVE_CONFIG`});toast("Z-offset saved; Klipper is restarting")}
+    catch(error){
+      if(!connected||ws?.readyState!==WebSocket.OPEN)toast("Save sent; waiting for Klipper to reconnect");
+      else toast("Could not save Z-offset: "+error.message);
+    }
+  },true,"CANCEL");
+};
 
 document.querySelectorAll("[data-home]").forEach(b=>b.onclick=async()=>{
   if(!manualAllowed()){toast("Homing locked while printer is active");return}
