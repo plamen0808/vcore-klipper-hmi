@@ -454,16 +454,17 @@ html,body{background:#090d09}
 .card,.file-card{background:linear-gradient(145deg,#151d15,#0e140e)}
 /* Keep every existing outline in the brand green; warning controls retain their own color. */
 *{border-color:var(--border-green)!important}
-button:not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-service):not(#confirmStop){
+button:not(.temp):not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-service):not(#confirmStop){
  background:var(--button-green)!important;border-color:var(--border-green)!important;color:#10160c!important
 }
-button:not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-service):not(#confirmStop):hover{
+button:not(.temp):not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-service):not(#confirmStop):hover{
  background:var(--button-green-hover)!important
 }
-button:not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-service):not(#confirmStop):disabled{
+button:not(.temp):not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-service):not(#confirmStop):disabled{
  opacity:.4
 }
 .temp{background:#1a1c18!important;color:var(--text)!important}
+.temp:hover{background:#24291e!important;box-shadow:0 0 12px #ceff0066}
 .macro-button span:last-child{color:#10160c!important}
 .macro-check input{accent-color:#ceff00!important}
 .preview .placeholder,.file-thumb .file-icon{color:#fff!important}
