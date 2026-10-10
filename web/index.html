@@ -11,8 +11,8 @@
 <style>
 :root{
   --bg:#090d09;--panel:#111711;--panel2:#182018;--line:#2a3829;
-  --text:#f4f7f2;--muted:#929d90;--blue:#8fc63d;--cyan:#b0e65c;
-  --green:#91c83e;--orange:#ffad1f;--red:#ff453a;--purple:#a970ff;
+  --text:#f4f7f2;--muted:#929d90;--blue:#ceff00;--cyan:#ceff00;
+  --green:#ceff00;--orange:#ffad1f;--red:#ff453a;--purple:#a970ff;
   --radius:16px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -448,7 +448,7 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
 }
 
 /* Rat Rig black, charcoal and green theme. */
-:root{color-scheme:dark;--border-green:#91c83e;--button-green:#91c83e;--button-green-hover:#a6d957}
+:root{color-scheme:dark;--border-green:#ceff00;--button-green:#ceff00;--button-green-hover:#dcff4d}
 html,body{background:#090d09}
 .top{background:#0c120c}
 .card,.file-card{background:linear-gradient(145deg,#151d15,#0e140e)}
@@ -463,14 +463,22 @@ button:not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-s
 button:not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-service):not(#confirmStop):disabled{
  opacity:.4
 }
+.temp{background:#1a1c18!important;color:var(--text)!important}
+.macro-button span:last-child{color:#10160c!important}
+.macro-check input{accent-color:#ceff00!important}
+.preview .placeholder,.file-thumb .file-icon{color:#fff!important}
 .pause{background:#f2b833!important;border-color:#f2b833!important;color:#241b08!important}
 .stop,.delete-file,.stop-service,#confirmStop,.emergency-stop{
  background:#c92f2a!important;border-color:#ff5148!important;color:#fff!important
 }
 .emergency-stop{background:linear-gradient(160deg,#a52b25,#641714)!important}
-.nav button.active{background:#a6d957!important;color:#10160c!important;box-shadow:0 0 12px #91c83e55}
+.nav button.active{background:#ceff00!important;color:#10160c!important;box-shadow:0 0 12px #ceff0055}
 .resume{background:var(--button-green)!important;color:#10160c!important}
-.increment.selected{background:#a6d957!important;box-shadow:0 0 14px #91c83e55}
+.increment.selected{background:#ceff00!important;box-shadow:0 0 14px #ceff0055}
+#status::before{content:"";display:inline-block;width:9px;height:9px;margin-right:7px;border-radius:50%;vertical-align:1px;background:#ff4545;box-shadow:0 0 8px currentColor}
+#status.light-ready::before{background:#ceff00;color:#ceff00}
+#status.light-loading::before{background:#ffc933;color:#ffc933}
+#status.light-offline::before{background:#ff4545;color:#ff4545}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--button-green-hover);outline-offset:2px}
 input,select,textarea{accent-color:var(--button-green)}
 ::selection{background:#91c83e66;color:#fff}
@@ -780,7 +788,7 @@ function setPrinterLabel(label){
 }
 setPrinterLabel(printerLabel);
 let ws=null, rpcId=1, reconnectTimer=null, objects={};
-let connected=false, currentState="offline", currentExtruderTemp=NaN;
+let connected=false, klippyReady=false, currentState="offline", currentExtruderTemp=NaN;
 let printerInfo={}, serverInfo={};
 let jobThumbnailFilename="", jobThumbnailRequest=0;
 
@@ -930,11 +938,17 @@ function rpc(method, params={}){
   });
 }
 function setConn(ok){
-  connected=ok;$("connText").textContent=ok?"CONNECTED":"OFFLINE";
+  connected=ok;if(!ok)klippyReady=false;$("connText").textContent=ok?"CONNECTED":"OFFLINE";
   $("status").textContent=ok?stateLabel(currentState):"OFFLINE";
   $("status").className="status "+(!ok?"idle":currentState==="printing"?"":"paused");
+  applyStatusLight();
   updatePrintControls();
   updateZOffsetControls();
+}
+function applyStatusLight(){
+  const status=$("status");
+  status.classList.remove("light-ready","light-loading","light-offline");
+  status.classList.add(!connected?"light-offline":klippyReady?"light-ready":"light-loading");
 }
 function stateLabel(s){return ({printing:"PRINTING",paused:"PAUSED",complete:"COMPLETE",error:"ERROR",standby:"READY",cancelled:"CANCELLED",idle:"READY"})[s]||"READY"}
 let currentZOffset=NaN;
@@ -1032,6 +1046,7 @@ function updateStatus(s){
     $("operation").textContent=operation||"Waiting for printer";
     $("status").textContent=stateLabel(currentState);
     $("status").className="status "+(currentState==="printing"?"":currentState==="paused"?"paused":currentState==="error"?"error":"idle");
+    applyStatusLight();
     updatePrintControls();
   }
   if(s.motion_report){
@@ -1116,9 +1131,10 @@ async function connect(){
         }else if(m.method==="notify_gcode_response"){
           appendConsoleLine(String(m.params?.[0]||""),"console-response");
         }else if(m.method==="notify_klippy_disconnected"){
-          clearPrinterReadouts();$("status").textContent="KLIPPY OFFLINE";
+          klippyReady=false;clearPrinterReadouts();$("status").textContent="KLIPPY OFFLINE";$("status").className="status idle";applyStatusLight();
           stateRefreshTimer=setTimeout(refreshPrinterState,2000);
         }else if(m.method==="notify_klippy_ready"){
+          klippyReady=true;applyStatusLight();
           refreshPrinterState();
         }
       }catch{}
@@ -1141,6 +1157,7 @@ async function refreshPrinterState(){
   try{
     serverInfo=await rpc("server.info");
     if(serverInfo.klippy_state!=="ready"){
+      klippyReady=false;applyStatusLight();
       setRecoveryAlert(currentState==="error"||["shutdown","error"].includes(String(serverInfo.klippy_state||"").toLowerCase()));
       currentState="offline";
       $("status").textContent=serverInfo.klippy_state?serverInfo.klippy_state.toUpperCase():"STARTING";
@@ -1148,6 +1165,7 @@ async function refreshPrinterState(){
       stateRefreshTimer=setTimeout(refreshPrinterState,2000);
       return;
     }
+    klippyReady=true;applyStatusLight();
     setRecoveryAlert(currentState==="error");
     if(!await detectCapabilities())stateRefreshTimer=setTimeout(refreshPrinterState,2000);
   }catch{
