@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#081019">
+<meta name="theme-color" content="#090d09">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>V-Core HMI</title>
 <style>
 :root{
-  --bg:#070d13;--panel:#0d151e;--panel2:#111c27;--line:#1d2a36;
-  --text:#f4f7fa;--muted:#81909e;--blue:#2196f3;--cyan:#19b5fe;
-  --green:#20d66b;--orange:#ffad1f;--red:#ff453a;--purple:#a970ff;
+  --bg:#090d09;--panel:#111711;--panel2:#182018;--line:#2a3829;
+  --text:#f4f7f2;--muted:#929d90;--blue:#8fc63d;--cyan:#b0e65c;
+  --green:#91c83e;--orange:#ffad1f;--red:#ff453a;--purple:#a970ff;
   --radius:16px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -447,6 +447,23 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
  .control-layout>.control-side{min-height:0}
 }
 
+/* Rat Rig inspired black and green theme. Keep red/orange for alerts and heat states. */
+:root{color-scheme:dark}
+html,body{background:var(--bg)}
+.top{background:#0c120c}
+.card{background:linear-gradient(145deg,#151d15,#0e140e);border-color:#2a3829}
+.nav{background:var(--bg)}
+.nav button{background:#121a12;color:#a2ad9f;border-color:#2a3829}
+.nav button.active{border-color:var(--green);color:#b6e778;background:#1b2914;box-shadow:inset 0 0 0 1px #91c83e33}
+.top-power{background:#1b2913;border-color:#496b2a;color:#b6e778}
+.home-quick button{background:#243719;border-color:#46672d}
+.home-quick button:last-child{background:#25331b;border-color:#526d34}
+.resume{background:#4d801f}
+.increment{background:#1b251a;border-color:#344632}
+.increment.selected{background:#426c1d;border-color:#9bce54;box-shadow:0 0 14px #91c83e55}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+input,select,textarea{accent-color:var(--green)}
+::selection{background:#91c83e66;color:#fff}
 </style>
 </head>
 <body>
