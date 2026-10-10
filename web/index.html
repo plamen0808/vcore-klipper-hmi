@@ -447,22 +447,32 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
  .control-layout>.control-side{min-height:0}
 }
 
-/* Rat Rig inspired black and green theme. Keep red/orange for alerts and heat states. */
-:root{color-scheme:dark}
-html,body{background:var(--bg)}
+/* Rat Rig black, charcoal and green theme. */
+:root{color-scheme:dark;--border-green:#91c83e;--button-green:#91c83e;--button-green-hover:#a6d957}
+html,body{background:#090d09}
 .top{background:#0c120c}
-.card{background:linear-gradient(145deg,#151d15,#0e140e);border-color:#2a3829}
-.nav{background:var(--bg)}
-.nav button{background:#121a12;color:#a2ad9f;border-color:#2a3829}
-.nav button.active{border-color:var(--green);color:#b6e778;background:#1b2914;box-shadow:inset 0 0 0 1px #91c83e33}
-.top-power{background:#1b2913;border-color:#496b2a;color:#b6e778}
-.home-quick button{background:#243719;border-color:#46672d}
-.home-quick button:last-child{background:#25331b;border-color:#526d34}
-.resume{background:#4d801f}
-.increment{background:#1b251a;border-color:#344632}
-.increment.selected{background:#426c1d;border-color:#9bce54;box-shadow:0 0 14px #91c83e55}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
-input,select,textarea{accent-color:var(--green)}
+.card,.file-card{background:linear-gradient(145deg,#151d15,#0e140e)}
+/* Keep every existing outline in the brand green; warning controls retain their own color. */
+*{border-color:var(--border-green)!important}
+button:not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-service):not(#confirmStop){
+ background:var(--button-green)!important;border-color:var(--border-green)!important;color:#10160c!important
+}
+button:not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-service):not(#confirmStop):hover{
+ background:var(--button-green-hover)!important
+}
+button:not(.pause):not(.stop):not(.emergency-stop):not(.delete-file):not(.stop-service):not(#confirmStop):disabled{
+ opacity:.4
+}
+.pause{background:#f2b833!important;border-color:#f2b833!important;color:#241b08!important}
+.stop,.delete-file,.stop-service,#confirmStop,.emergency-stop{
+ background:#c92f2a!important;border-color:#ff5148!important;color:#fff!important
+}
+.emergency-stop{background:linear-gradient(160deg,#a52b25,#641714)!important}
+.nav button.active{background:#a6d957!important;color:#10160c!important;box-shadow:0 0 12px #91c83e55}
+.resume{background:var(--button-green)!important;color:#10160c!important}
+.increment.selected{background:#a6d957!important;box-shadow:0 0 14px #91c83e55}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--button-green-hover);outline-offset:2px}
+input,select,textarea{accent-color:var(--button-green)}
 ::selection{background:#91c83e66;color:#fff}
 </style>
 </head>
