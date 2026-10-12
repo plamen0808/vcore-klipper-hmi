@@ -452,9 +452,12 @@ main{flex:1;min-height:0;padding:8px clamp(8px,1.8vw,16px) 0;gap:0;overflow:hidd
 html,body{background:#090d09}
 .top{background:#0c120c}
 .card,.file-card{background:linear-gradient(145deg,#151d15,#0e140e)}
-/* Green outlines, charcoal button faces, and green interaction/selection states. */
-*{border-color:var(--border-green)!important}
+/* Green borders are reserved for the header and bottom ribbon. */
+*{border-color:#fff!important}
+.top,.top *,.nav,.nav *{border-color:var(--border-green)!important}
 button{background:#242720!important;border-color:var(--border-green)!important;color:#f1f3ed!important}
+button{border-color:#fff!important}
+.top button,.nav button{border-color:var(--border-green)!important}
 button:hover,button:active{background:var(--button-green)!important;color:#10160c!important}
 button:disabled{background:#242720!important;color:#92988b!important;opacity:.42}
 .temp{background:#1a1c18!important;color:var(--text)!important}
@@ -462,6 +465,7 @@ button:disabled{background:#242720!important;color:#92988b!important;opacity:.42
 .macro-button span:last-child{color:#10160c!important;background:#ceff00;padding:3px 5px;border-radius:4px}
 .macro-check input{accent-color:#ceff00!important}
 .preview .placeholder,.file-thumb .file-icon{color:#fff!important}
+.emergency-stop,.emergency-stop:hover,.emergency-stop:active{background:#c92f2a!important;color:#fff!important;border:0!important}
 .nav button.active,.increment.selected{background:#ceff00!important;color:#10160c!important;box-shadow:0 0 12px #ceff0055}
 #status::before{content:"";display:inline-block;width:9px;height:9px;margin-right:7px;border-radius:50%;vertical-align:1px;background:#ff4545;box-shadow:0 0 8px currentColor}
 #status.light-ready::before{background:#ceff00;color:#ceff00}
